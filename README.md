@@ -2,7 +2,7 @@
 
 Aplicación móvil de inspección técnica de obras que registra en terreno lo observado durante el turno y **genera automáticamente el reporte diario** para emitirlo al mandante antes de que la jornada termine.
 
-> Proyecto del curso *Ingeniería Digital en Acción: Datos, IA y MVPs* — Departamento de Ingeniería Industrial, Universidad de Santiago de Chile. Ecosistema de Desarrollo de Soluciones Digitales (DSD), segundo semestre 2026.
+> Proyecto del curso *Ingeniería Digital en Acción: Datos, IA y MVPs*. Departamento de Ingeniería Industrial, Universidad de Santiago de Chile. Ecosistema de Desarrollo de Soluciones Digitales (DSD), segundo semestre 2026.
 
 ---
 
@@ -35,7 +35,7 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 3 — configuración del ambiente de desarrollo.** El repositorio, el README y la estructura de datos preliminar están definidos. Todavía no hay código de aplicación.
+**Semana 3: configuración del ambiente de desarrollo.** El repositorio, el README y la estructura de datos preliminar están definidos. Todavía no hay código de aplicación.
 
 | Hito | Semana | Estado |
 |---|---|---|
@@ -105,15 +105,14 @@ bitacora-ito/
 | Integrante | Usuario de GitHub |
 |---|---|
 | Jaritza Ramírez Valles | `Jariramirez` |
-| Alejandra Silva Arroyo | `<usuario>` |
+| Alejandra Silva Arroyo | `alejandrasilvaarroyo` |
 | Fabián Prada Robles | `fabianpradar` |
 | Marcela Arancibia Godoy | `Marcelarac` |
 
-Equipo N.º 1 — modalidad online.
+Equipo N.º 1, modalidad online.
 
 ## Documentación
 
 - [Estructura de datos preliminar](docs/01-estructura-datos.md)
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
-a35e8193cb6cd76c)
