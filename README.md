@@ -23,9 +23,9 @@ Una empresa de inspección técnica de obras (ITO) presta servicios a mandantes 
 
 ## Qué es y qué no es el reporte
 
-El reporte diario es la **constancia de un turno**: deja registro de lo ejecutado en cada frente, de las alertas del día y, cuando el inspector detecta una observación, de esa observación con la criticidad que él mismo indica. Cada reporte se cierra en sí mismo.
+El reporte diario deja constancia de lo ocurrido en un turno: qué se ejecutó en cada frente, qué alertas hubo y, si el inspector detecta una observación, esa observación con su nivel de criticidad.
 
-No es un sistema de seguimiento: no arrastra alertas de un día a otro, no lleva estados de abierta o cerrada, no asigna responsables ni controla plazos. Si la situación persiste, el inspector la vuelve a reportar como lo que observó ese turno.
+Cada reporte se cierra en sí mismo. El sistema no hace seguimiento: no arrastra alertas de un día a otro ni controla si algo se corrigió. Si la situación continúa, el inspector la reporta de nuevo al día siguiente.
 
 ## Propuesta de solución
 
@@ -47,21 +47,19 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Stack tecnológico
 
-| Capa | Herramienta |
+| Para qué | Herramienta |
 |---|---|
-| Editor | VS Code |
-| Control de versiones | GitHub |
-| Despliegue | Vercel |
-| Base de datos, almacenamiento y autenticación | Supabase |
-| Documentación del proyecto | Notion |
-| Comunicación | Slack |
+| Escribir el código | VS Code |
+| Guardar y versionar el código | GitHub |
+| Publicar la aplicación | Vercel |
+| Base de datos, archivos y cuentas de usuario | Supabase |
+| Documentar el proyecto | Notion |
+| Comunicación del equipo | Slack |
 | Asistencia de IA | Claude |
 
 ## Cómo se ejecuta
 
 Aplicación desplegada: **https://bitacora-ito.vercel.app**
-
-> Las instrucciones quedan escritas desde ahora y se completan cuando exista la primera versión de la aplicación (semana 4).
 
 ```bash
 # 1. Clonar el repositorio
@@ -79,7 +77,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:3000`. El despliegue de producción se genera automáticamente en Vercel con cada cambio en la rama `main`.
+Con esos pasos la aplicación se abre en el propio computador, en `http://localhost:3000`, que sirve solo para probar mientras se programa. La versión pública se genera automáticamente en Vercel con cada cambio en la rama `main`.
 
 ## Estructura del repositorio
 
@@ -118,3 +116,4 @@ Equipo N.º 1 — modalidad online.
 - [Estructura de datos preliminar](docs/01-estructura-datos.md)
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
+a35e8193cb6cd76c)
