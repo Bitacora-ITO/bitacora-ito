@@ -1,0 +1,35 @@
+# Dependencias
+node_modules/
+
+# Compilación y build
+.next/
+out/
+build/
+dist/
+
+# Variables de entorno — NUNCA subir credenciales reales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuración local de editores
+.vscode/
+.idea/
+
+# Vercel y Supabase
+.vercel
+.supabase/
+
+# Archivos locales de trabajo
+/local
