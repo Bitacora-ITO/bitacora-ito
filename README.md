@@ -35,13 +35,14 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 3: configuración del ambiente de desarrollo.** El repositorio, el README y la estructura de datos preliminar están definidos. Todavía no hay código de aplicación.
+**Semana 4: historias de usuario y wireframes.** El ambiente de desarrollo quedó configurado en la semana 3: repositorio, ramas, despliegue y documentación inicial. Todavía no hay código de aplicación.
 
 | Hito | Semana | Estado |
 |---|---|---|
 | Propuesta de valor, alcance, usuarios (Avance 1) | 1 | Entregado |
 | Propuesta de solución, caso de uso, maqueta, roadmap (Avance 2) | 2 | Entregado |
-| Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | En curso |
+| Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | Entregado |
+| Historias de usuario y wireframes (Avance 4) | 4 | En curso |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
