@@ -6,6 +6,10 @@
 
 ---
 
+## Formato
+
+Cada historia se descompone en rol, acción y beneficio, según la plantilla de Cohn (2004). El beneficio es lo que permite discutir alternativas y decidir si la historia merece el esfuerzo: sin él, no hay forma de priorizar.
+
 ## Roles
 
 | Rol | Quién es |
@@ -34,9 +38,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-01 · Abrir el turno y ver el estado de los frentes
 
-**Como** inspector de terreno,
-**quiero** ver al empezar el turno los frentes del contrato y cuáles ya tienen registro,
-**para** saber qué me falta recorrer sin llevar la cuenta en la cabeza.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Ver, al empezar el turno, los frentes del contrato y cuáles ya tienen registro |
+| **Beneficio** | Saber qué falta recorrer sin llevar la cuenta de memoria |
 
 **Revisión INVEST**
 
@@ -65,9 +71,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-02 · Registrar un avance en terreno · flujo principal
 
-**Como** inspector de terreno,
-**quiero** registrar lo que observo en un frente con fotografía, dictado y ubicación en el momento,
-**para** no tener que reescribirlo en gabinete al final del turno.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Registrar lo observado en un frente con fotografía, dictado y ubicación, en el momento en que ocurre |
+| **Beneficio** | Evitar reescribirlo en gabinete al final del turno |
 
 **Revisión INVEST**
 
@@ -102,9 +110,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-03 · Levantar una alerta con su criticidad
 
-**Como** inspector de terreno,
-**quiero** reportar una observación indicando su nivel de criticidad y en qué columna del reporte se publica,
-**para** que el mandante sepa de inmediato qué requiere atención y qué no.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Reportar una observación indicando su nivel de criticidad y la columna del reporte en que se publica |
+| **Beneficio** | Que el mandante distinga de inmediato qué requiere atención y qué no |
 
 **Revisión INVEST**
 
@@ -133,9 +143,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-04 · Declarar un frente sin actividad
 
-**Como** inspector de terreno,
-**quiero** marcar en un toque que un frente no tuvo trabajos hoy,
-**para** que el reporte lo declare de forma explícita y no parezca que se me olvidó.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Marcar en un toque que un frente no tuvo trabajos durante el turno |
+| **Beneficio** | Que el reporte lo declare de forma explícita y no parezca una omisión |
 
 **Revisión INVEST**
 
@@ -164,9 +176,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-05 · Agregar un frente nuevo desde terreno
 
-**Como** inspector de terreno,
-**quiero** crear un frente con su número y nombre cuando aparece en la obra,
-**para** registrarlo el mismo día sin esperar que alguien lo configure.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Crear un frente con su número y nombre cuando aparece en la obra |
+| **Beneficio** | Registrarlo el mismo día sin esperar que alguien lo configure |
 
 **Revisión INVEST**
 
@@ -195,9 +209,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-06 · Revisar el borrador del reporte del turno
 
-**Como** inspector de terreno,
-**quiero** ver al cierre del turno el reporte ya redactado con todo lo que registré,
-**para** revisarlo y corregirlo en vez de escribirlo desde cero.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Ver, al cierre del turno, el reporte ya redactado con todo lo registrado |
+| **Beneficio** | Revisarlo y corregirlo en vez de escribirlo desde cero |
 
 **Revisión INVEST**
 
@@ -226,9 +242,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-07 · Emitir el reporte al mandante
 
-**Como** inspector de terreno,
-**quiero** aprobar el reporte y enviarlo a los destinatarios del contrato,
-**para** cerrar la jornada con el reporte entregado y con constancia de la hora de envío.
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Aprobar el reporte y enviarlo a los destinatarios del contrato |
+| **Beneficio** | Cerrar la jornada con el reporte entregado y con constancia de la hora de envío |
 
 **Revisión INVEST**
 
@@ -263,9 +281,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ## HU-08 · Consultar reportes anteriores
 
-**Como** jefatura de inspección,
-**quiero** buscar reportes ya emitidos por fecha o por frente,
-**para** respaldar con evidencia una consulta del mandante sin pedírsela al inspector.
+| | |
+|---|---|
+| **Rol** | Jefatura de inspección |
+| **Acción** | Buscar reportes ya emitidos por fecha o por frente |
+| **Beneficio** | Respaldar con evidencia una consulta del mandante sin recurrir al inspector |
 
 **Revisión INVEST**
 
@@ -289,16 +309,3 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 - **Dado** que ningún reporte coincide con la búsqueda,
 - **cuando** se ejecuta la consulta,
 - **entonces** el sistema lo indica y mantiene los filtros para corregirlos.
-
----
-
-## Historias descartadas
-
-Se dejan registradas para no volver a discutirlas.
-
-| Descartada | Motivo |
-|---|---|
-| Seguimiento de alertas entre reportes, con estados y plazos | El reporte deja constancia de un turno y no controla si lo observado se corrigió. |
-| Cálculo de avance acumulado por frente | Requiere capturar los datos técnicos en campos separados, lo que cargaría al inspector en terreno. |
-| «Gestionar la inspección del contrato» | Es una épica, no una historia: no cabe en un sprint y habría que dividirla. |
-| «Crear las tablas del sistema en la base de datos» | Es una tarea del tablero: no entrega valor fuera del equipo. |
