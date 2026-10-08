@@ -129,6 +129,7 @@ En palabras:
 | `hora_aprobacion` | timestamp | No | `2026-09-27T17:56:00-03:00` |
 | `aprobado_por` | uuid (FK) | No | `9c1e…` |
 | `url_pdf` | texto | No | `https://…/reporte_2026-09-27.pdf` |
+| `resumen_turno` | texto largo | No | `Turno sin novedades críticas. Se ejecutó avance en Muro Sotelo.` |
 
 > El reporte lo elabora y emite **un** inspector, cuyo nombre queda en el campo «Elaborado por». Hay un reporte por turno: el del turno día y el del turno noche, cada uno a cargo de un inspector distinto.
 
