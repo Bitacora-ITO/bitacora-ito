@@ -277,6 +277,11 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 - **cuando** el inspector necesita corregirlo,
 - **entonces** el sistema no modifica el envío original y genera un envío nuevo sobre el mismo reporte, quedando ambos registrados.
 
+**Escenario alternativo · emisión sin cobertura de red (offline)**
+
+- **Dado** que el inspector aprueba el borrador del reporte al cerrar la jornada,
+- **cuando** confirma el envío pero el dispositivo móvil no tiene cobertura de red,
+- **entonces** el sistema genera y almacena el documento PDF localmente en estado `aprobado`, deja el envío en cola de espera y lo despacha automáticamente a los destinatarios tan pronto como el dispositivo detecte señal de red.
 ---
 
 ## HU-08 · Consultar reportes anteriores
