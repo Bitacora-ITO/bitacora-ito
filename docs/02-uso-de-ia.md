@@ -44,6 +44,7 @@ La corrección más importante no fue de detalle sino de concepto. La propuesta 
 | Se separaron `registrado_en` y `sincronizado_en` | Con una sola hora no se distingue un registro levantado en terreno de uno reconstruido en gabinete, que es uno de los indicadores comprometidos |
 | Se agregó el campo `sin_actividad` | El reporte declara explícitamente los frentes detenidos, y eso también es información que el mandante espera |
 | Se agregaron clima del turno y proyección del día siguiente | Están en el encabezado del formato real y la primera versión los había omitido |
+| Se incorporó el campo `resumen_turno` en `reporte` y el escenario offline en `HU-07` | Permitir consolidar el texto del borrador en P4 y asegurar la generación local del PDF sin señal al cerrar el turno. |
 
 ## 5. Cómo se verificó
 
