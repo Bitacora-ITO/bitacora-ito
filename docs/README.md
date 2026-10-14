@@ -122,5 +122,5 @@ Equipo N.º 1, modalidad online.
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
 - [Historias de usuario y criterios de aceptación](docs/historias.md)
 - [Wireframe del flujo principal](docs/wireframes/)
-- [Prototipo navegable: mapa de navegación y registro de decisiones](docs/prototipo.md)
+- [Prototipo navegable: mapa de navegación y registro de decisiones](prototipo.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
