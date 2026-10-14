@@ -35,13 +35,15 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 3: configuración del ambiente de desarrollo.** El repositorio, el README y la estructura de datos preliminar están definidos. Todavía no hay código de aplicación.
+**Semana 5: prototipo navegable.** El backlog tiene ocho historias con sus criterios de aceptación, el flujo principal está dibujado y anotado, y las pantallas están enlazadas en un prototipo que se puede recorrer. El ambiente de desarrollo quedó configurado en la semana 3. Todavía no hay código de aplicación.
 
 | Hito | Semana | Estado |
 |---|---|---|
 | Propuesta de valor, alcance, usuarios (Avance 1) | 1 | Entregado |
 | Propuesta de solución, caso de uso, maqueta, roadmap (Avance 2) | 2 | Entregado |
-| Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | En curso |
+| Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | Entregado |
+| Historias de usuario y wireframes (Avance 4) | 4 | Entregado |
+| Prototipo navegable (Avance 5) | 5 | En curso |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
@@ -85,7 +87,10 @@ Con esos pasos la aplicación se abre en el propio computador, en `http://localh
 bitacora-ito/
 ├── docs/                    Documentación del proyecto
 │   ├── 01-estructura-datos.md
-│   └── 02-uso-de-ia.md
+│   ├── 02-uso-de-ia.md
+│   ├── historias.md
+│   ├── prototipo.md         Mapa de navegación y registro de decisiones
+│   └── wireframes/          Wireframe anotado del flujo principal
 ├── src/                     Código de la aplicación
 ├── public/                  Archivos estáticos
 ├── .env.example             Ejemplo de variables de entorno (sin credenciales reales)
@@ -115,4 +120,7 @@ Equipo N.º 1, modalidad online.
 
 - [Estructura de datos preliminar](docs/01-estructura-datos.md)
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
+- [Historias de usuario y criterios de aceptación](docs/historias.md)
+- [Wireframe del flujo principal](docs/wireframes/)
+- [Prototipo navegable: mapa de navegación y registro de decisiones](docs/prototipo.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
