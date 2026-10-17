@@ -137,6 +137,4 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 - **Números grandes y no gráficos** en el resumen de P4: «5 frentes» y «2 alertas» son datos únicos, no comparaciones.
 - **Datos de ejemplo:** tomados del wireframe (contrato 4600026893, J. Orellana, TECNASIC, inspeccion@mandante.cl).
 
-### Pendientes del equipo
 
-- Enlazar este archivo desde el `README.md` del repositorio.
