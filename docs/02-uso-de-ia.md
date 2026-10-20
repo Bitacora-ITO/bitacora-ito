@@ -45,6 +45,8 @@ La corrección más importante no fue de detalle sino de concepto. La propuesta 
 | Se agregó el campo `sin_actividad` | El reporte declara explícitamente los frentes detenidos, y eso también es información que el mandante espera |
 | Se agregaron clima del turno y proyección del día siguiente | Están en el encabezado del formato real y la primera versión los había omitido |
 | Se incorporó el campo `resumen_turno` en `reporte` y el escenario offline en `HU-07` | Permitir consolidar el texto del borrador en P4 y asegurar la generación local del PDF sin señal al cerrar el turno. |
+| Se descartó la integración con cronogramas/partidas (Primavera/Project) | Mantener el foco en la rapidez de captura en terreno sin recargar al ITO con selección de ítems o medición de avances. |
+| Se habilitó la previsualización visual del PDF antes del envío | Permitir al inspector validar visualmente el formato final del documento antes de despacharlo en la pantalla P5. |
 
 ## 5. Cómo se verificó
 
