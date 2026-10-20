@@ -111,10 +111,11 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 | GPS | Simulado | Coordenadas fijas -22.4512, -68.9231 |
 | Guardado sin señal y sincronización | Simulado | Etiqueta «Por sincronizar» y aviso en 01c |
 | Generación del borrador | Simulado | 04a muestra el avance y pasa a un borrador de ejemplo |
-| PDF, envío y acuse | Simulado | 05c confirma «Enviado 17:58 · acuse recibido»; «Ver PDF» no abre nada |
+| Previsualización de PDF, envío y acuse | Funcional en flujo | 05a permite abrir la previsualización visual completa del PDF antes de enviar; 05c confirma «Enviado 17:58 · acuse recibido» |
 | Clima del turno | Simulado | Selector visible, no cambia nada |
 | Nuevo frente (HU-05), declarar sin actividad (HU-04) | Fuera del recorrido | Visibles para que el usuario sepa que existen; no navegan |
 | Inicio de sesión | Fuera del prototipo | Se asume sesión iniciada |
+- **Exclusión deliberada de cronogramas (Primavera P6 / MS Project):** El sistema no se enlaza con partidas o porcentajes de avance de programas de obra para no recargar al inspector en terreno. El reporte registra lo observado durante el turno y las desviaciones/alertas, priorizando la velocidad de captura mediante dictado por voz.
 
 ### Qué se observa en la prueba con usuarios (semana 7)
 
