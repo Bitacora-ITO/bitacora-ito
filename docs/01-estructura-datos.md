@@ -4,6 +4,7 @@
 **Fecha:** 30 de septiembre de 2026
 **Base:** Reporte Diario de Inspección de Construcción, código de proyecto 4600026893-8211-FRMCS-00001, revisión 1. Ejemplares del 24 y 27 de septiembre de 2026, turno día.
 **Estado:** preliminar. Se ajustará a medida que avance el desarrollo.
+**Actualización:** 20 de octubre de 2026 (versión 2). Recoge las observaciones del profesor guía: las áreas se eligen de una lista y el PDF se previsualiza. Suma además el historial con rol de turnos (ver §9).
 
 ---
 
@@ -20,7 +21,9 @@ Una segunda regla, acordada con el equipo: **el modelo guarda lo que el reporte 
 | `usuario` | Inspector de terreno, jefatura de inspección o administrador |
 | `contrato` | Servicio de inspección con su mandante, su formato de reporte y sus destinatarios |
 | `empresa` | Contratista o laboratorio que ejecuta trabajos en la obra (TECNASIC, GEOINYECTA, IDIEM, OOCC) |
-| `frente` | Frente y subfrente, jerárquico y numerado (1.0 Muro Sotelo → 1.2 Excavación y rellenos ZCF). Lo escribe el inspector y queda disponible para los reportes siguientes |
+| `frente` | **Área** del contrato (en la aplicación se llama «área»), jerárquica (área → subárea). Es un catálogo precargado con el contrato: el inspector la **elige de una lista** y no la escribe (versión 2) |
+| `area_turno` | Área agregada al reporte de un turno junto con la empresa que la ejecuta; fija la numeración del reporte (1.0, 2.0…) *(versión 2)* |
+| `rol_turno` | Rol de turnos del inspector (7x7) y el primer día de su turno; distingue los días de descanso de los informes no entregados *(versión 2)* |
 | `reporte` | Reporte diario de un contrato, una fecha y un turno |
 | `registro` | Actividad observada en un subfrente, o su declaración de «sin actividad» |
 | `alerta` | Hecho que se publica en la tabla de alertas del reporte |
@@ -42,13 +45,19 @@ erDiagram
     REPORTE ||--o{ ALERTA : "contiene"
     REPORTE ||--o{ ENVIO : "se remite en"
     USUARIO ||--o{ REPORTE : "elabora"
+    REPORTE ||--o{ AREA_TURNO : "incluye"
+    FRENTE ||--o{ AREA_TURNO : "se agrega como"
+    EMPRESA ||--o{ AREA_TURNO : "ejecuta"
+    USUARIO ||--o{ ROL_TURNO : "trabaja según"
+    CONTRATO ||--o{ ROL_TURNO : "define"
     REGISTRO ||--o{ FOTOGRAFIA : "respalda"
     ALERTA ||--o{ FOTOGRAFIA : "respalda"
 ```
 
 En palabras:
 
-- Un **contrato** acumula sus **frentes** (que se anidan en subfrentes) y tiene sus inspectores asignados. Los frentes no se configuran al inicio: el inspector los escribe cuando aparecen en la obra y el sistema los recuerda para proponerlos en los reportes siguientes.
+- Un **contrato** trae su catálogo de **áreas** (tabla `frente`, que puede anidar subáreas) y de **empresas**, y tiene sus inspectores asignados. Desde la versión 2, el catálogo lo carga la jefatura con el contrato. El inspector solo **elige** de la lista qué áreas trabaja en su turno y con qué empresa (`area_turno`).
+- Cada inspector tiene un **rol de turnos** (`rol_turno`, 7x7) con el primer día de su turno. Con él, el historial distingue un día de descanso de un día de trabajo sin informe.
 - Un **reporte** corresponde a un contrato, una fecha y un turno, y lo elabora **un** inspector.
 - Un **registro** pertenece a un reporte, se ubica en un subfrente y corresponde a la empresa que ejecuta el trabajo.
 - Una **alerta** pertenece a un reporte y se publica en una de las cuatro columnas del formato: Construcción, Laboratorio, Topografía o Interferencia.
@@ -103,14 +112,16 @@ En palabras:
 | `nombre` | texto | Sí | `Excavación y rellenos de 1A zanja cortafuga` |
 | `empresa_id` | uuid (FK) | No | `c330…` |
 | `orden` | entero | Sí | `12` |
-| `creado_por` | uuid (FK) | Sí | `9c1e…` |
+| `cargado_por` | uuid (FK) | Sí | `9c1e…` (jefatura) |
 | `creado_en` | timestamp | Sí | `2026-09-12T09:40:00-03:00` |
 | `ultimo_uso` | fecha | No | `2026-09-27` |
 | `vigente` | booleano | Sí | `true` |
 
 > `frente_padre_id` reproduce la jerarquía del reporte: 1.0 Muro Sotelo contiene 1.1, 1.2 y 1.3. `orden` fija la secuencia en que se imprimen las secciones.
 >
-> El catálogo de frentes **lo construye el inspector**, no la jefatura: cuando aparece un frente nuevo en la obra, lo escribe con su número y nombre y queda guardado para el contrato. `ultimo_uso` permite proponer primero los frentes del reporte anterior, y `vigente` deja de ofrecer los que ya terminaron sin borrar los reportes donde aparecen.
+> **Versión 2:** el catálogo de áreas **viene precargado con el contrato** y lo mantiene la jefatura. El inspector no escribe áreas: las elige de una lista desplegable. Las 14 áreas de ejemplo salen de la lista del contrato: Vertedero Morning Glory, Acceso a obra de captación, Fortificación Tramo B, Peralte Muro Sotelo, Instrumentación geotécnica Muro Sotelo, Torre de Captación, Túnel PAMo, Sistema de Manejo de Aguas, Mentidero, La Bodega, Tramo A, Tramo B, Traucalón y Sondajes.
+>
+> `ultimo_uso` permite proponer primero las áreas del reporte anterior. `vigente` deja de ofrecer las que ya terminaron, sin borrar los reportes donde aparecen. En la versión 2, `numero` ya no se escribe: la numeración del reporte la da `area_turno.orden`.
 
 ### 4.5 `reporte`
 
@@ -194,16 +205,45 @@ En palabras:
 | `estado` | enum (`enviado`, `fallido`, `reintentando`) | Sí | `enviado` |
 | `acuse_recibido` | booleano | No | `true` |
 
+### 4.10 `area_turno` *(versión 2)*
+
+| Campo | Tipo | Obligatorio | Ejemplo |
+|---|---|---|---|
+| `id` | uuid | Sí | `f310…` |
+| `reporte_id` | uuid (FK) | Sí | `7bd3…` |
+| `frente_id` | uuid (FK) | Sí | `a012…` (Peralte Muro Sotelo) |
+| `empresa_id` | uuid (FK) | Sí | `c330…` (TECNASIC) |
+| `orden` | entero | Sí | `2` → se imprime como sección 2.0 y la empresa como 2.1 |
+| `agregada_en` | timestamp | Sí | `2026-10-14T08:05:00-03:00` |
+
+> Se crea cuando el inspector toca «Agregar área» y elige el área y la empresa. Los registros del turno (`registro`) cuelgan del área del turno a través de `frente_id` y `empresa_id`. Un área no puede aparecer dos veces en el mismo reporte con la misma empresa.
+
+### 4.11 `rol_turno` *(versión 2)*
+
+| Campo | Tipo | Obligatorio | Ejemplo |
+|---|---|---|---|
+| `id` | uuid | Sí | `9a77…` |
+| `usuario_id` | uuid (FK) | Sí | `9c1e…` |
+| `contrato_id` | uuid (FK) | Sí | `4f77…` |
+| `dias_trabajo` | entero | Sí | `7` |
+| `dias_descanso` | entero | Sí | `7` |
+| `fecha_inicio` | fecha | Sí | `2026-10-08` (primer día de turno marcado por el inspector) |
+| `vigente_desde` | fecha | Sí | `2026-10-08` |
+
+> Para cualquier fecha, el día del ciclo es `(fecha − fecha_inicio) mod (dias_trabajo + dias_descanso)`. Si es menor que `dias_trabajo`, es día de trabajo; si no, es descanso. En el calendario, un día de trabajo con `envio` en estado `enviado` sale **verde**, un día de trabajo sin envío ya pasado sale **rojo** y un día de descanso sale **gris**. Cada `fecha_inicio + k × 14` se marca como inicio de turno.
+
 ## 5. Reglas de negocio
 
 1. Existe **un solo reporte por contrato, fecha y turno**, y cada turno lo elabora un inspector distinto. Al registrar la primera actividad, el reporte se crea en estado `borrador` y toma el correlativo siguiente de la serie del contrato, que es única y continua para ambos turnos.
 2. Un frente **sin registros al cierre del turno** obliga al inspector a confirmar «sin actividad»: el reporte no se genera con frentes en blanco.
-3. El inspector puede **crear, renumerar o dar de baja** un frente en cualquier momento; el cambio rige desde el reporte en curso y no altera los reportes ya emitidos.
+3. *(Versión 2)* El inspector **no crea ni escribe áreas**: elige del catálogo del contrato y la empresa que la ejecuta. La jefatura puede agregar o dar de baja áreas del catálogo; el cambio rige desde el reporte en curso y no altera los reportes ya emitidos.
 4. Una alerta de criticidad `alta` **exige al menos una fotografía**.
 5. Un reporte solo pasa a `enviado` después de `aprobado`: **la aprobación humana es obligatoria** y queda registrada con autor y hora.
 6. Los registros capturados sin señal conservan su `registrado_en` original al sincronizar.
 7. Un reporte enviado **no se edita**: una corrección genera un nuevo `envio` sobre el mismo reporte, con trazabilidad de ambos.
 8. Cada reporte es **independiente**: las alertas pertenecen al día en que se levantaron y no se heredan ni se cierran en reportes posteriores.
+9. *(Versión 2)* La aprobación de la regla 5 **solo se puede dar desde la vista previa del PDF**: el reporte pasa a `generado` cuando se arma el PDF de la vista previa y a `aprobado` cuando el inspector toca «Aprobar y enviar» después de verlo.
+10. *(Versión 2)* Un día cuenta como **no entregado** solo si es día de trabajo según `rol_turno` y no tiene un `envio` en estado `enviado`. Los días de descanso no cuentan.
 
 ## 6. Cómo se mide la propuesta de solución con este modelo
 
@@ -213,6 +253,7 @@ En palabras:
 | Reportes enviados dentro del turno | `envio.enviado_en` ≤ `contrato.hora_cierre_turno_dia` |
 | Minutos de edición del borrador | `reporte.hora_aprobacion` − `reporte.hora_generacion` |
 | Registros levantados en terreno | Proporción con `latitud` presente y `registrado_en` dentro del turno |
+| Informes entregados en el mes *(v2)* | Días de trabajo del mes según `rol_turno` con `envio.estado = enviado`, frente al total de días de trabajo |
 
 ## 7. Decisiones pendientes
 
@@ -239,3 +280,12 @@ Los cambios que introdujo esa segunda etapa:
 | Se separaron `registrado_en` y `sincronizado_en` | Permiten distinguir un registro levantado en terreno de uno reconstruido en gabinete |
 | La criticidad se trasladó del registro a la alerta | Es en la tabla de alertas donde el inspector la indica |
 
+## 9. Cambios de la versión 2 (semana 6)
+
+| Cambio | Motivo |
+|---|---|
+| El catálogo de áreas (`frente`) lo carga la jefatura con el contrato y el inspector lo elige de una lista | Observación del profesor guía: las áreas no las debe escribir el inspector, deben venir en un despliegue |
+| `creado_por` pasa a `cargado_por` | Quien carga el catálogo es la jefatura, no el inspector |
+| Se agregó `area_turno` (área + empresa + orden) | Al agregar un área se elige también la empresa, y el orden numera el reporte (n.0 área, n.1 empresa) |
+| El reporte pasa a `generado` con la vista previa y a `aprobado` solo desde ella (regla 9) | Observación del profesor guía: el inspector debe revisar el PDF antes de enviarlo |
+| Se agregó `rol_turno` (7x7 y primer día de turno) | El historial debe distinguir los días de descanso de los informes no entregados |

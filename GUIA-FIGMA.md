@@ -1,5 +1,16 @@
 # Guía para armar el prototipo en Figma
 
+> **Versión 2 (semana 6): ya está aplicada en el archivo de Figma.**
+>
+> Las pantallas nuevas y las modificadas se hicieron directo en el archivo, a través del conector de Figma. No hay que importar nada nuevo:
+>
+> - **Agregar área:** 06a y 06b.
+> - **Vista previa del PDF:** 07a y 07b. La 07a es la antigua 05e.
+> - **Historial:** 08a a 08d.
+> - **Pantallas modificadas:** 01a, 01b, 01c, 02a a 02d, 04a, 04b, 04c y 05a.
+>
+> Esta guía sigue sirviendo para entender cómo está armado el prototipo. Si alguna vez hay que rehacerlo a mano, las conexiones nuevas están en el [Paso 3b](#paso-3b-conexiones-de-la-versión-2).
+
 Las 17 pantallas (5 pantallas con sus estados) ya están dibujadas en la carpeta `pantallas/`. En Figma solo hay que importarlas, conectarlas y compartir el enlace. Calcula alrededor de una hora.
 
 ## Paso 1. Crear el archivo
@@ -65,6 +76,30 @@ Para el «After delay»: selecciona el marco completo (clic en su nombre), agreg
 
 Animación sugerida para todo: **Instant** o **Dissolve 200 ms**.
 
+## Paso 3b. Conexiones de la versión 2
+
+| Desde | Elemento | Disparador | Hacia |
+|---|---|---|---|
+| 01a / 01c | Agregar área | On tap | 06a |
+| 01b | Agregar primera área | On tap | 06a |
+| 01a / 01b / 01c | Ícono calendario (arriba a la derecha) | On tap | 08a |
+| 06a | ← Turno | On tap | 01a |
+| 06a | Fila «Túnel PAMo» o «Elegir empresa» | On tap | 06b |
+| 06b | ← Áreas o «Cambiar» | On tap | 06a |
+| 06b | Agregar al turno | On tap | 01a |
+| 04b | Ver vista previa del PDF | On tap | 07a |
+| 07a | ← Borrador o «Volver a editar» | On tap | 04b |
+| 07a | Paginador «‹ 1 / 2 ›» | On tap | 07b |
+| 07a / 07b | Aprobar y enviar | On tap | 05a |
+| 07b | Paginador «‹ 2 / 2 ›» | On tap | 07a |
+| 07b | ← Borrador o «Volver a editar» | On tap | 04b |
+| 05a | ← Vista previa o tarjeta del PDF | On tap | 07a |
+| 08a | ← Turno o «Volver al turno» | On tap | 01a |
+| 08a | Días verdes (8, 9, 10, 12 y 13) | On tap | 08b |
+| 08a | Día rojo (11) | On tap | 08c |
+| 08a | Tarjeta «Rol 7x7 · Cambiar» | On tap | 08d |
+| 08b / 08c / 08d | ← Historial o botón inferior | On tap | 08a |
+
 ## Paso 4. Puntos de inicio (flows)
 
 En Prototype, con un marco seleccionado, toca **+ Flow starting point** y nómbralo:
@@ -75,6 +110,7 @@ En Prototype, con un marco seleccionado, toca **+ Flow starting point** y nómbr
 | 03a | A1 · Alerta alta sin foto | Mostrar el error de HU-03 |
 | 05d | A3 · Envío sin red | Mostrar el envío en cola de HU-07 |
 | 01b | Estado vacío | Primer día del contrato (HU-01) |
+| 08a | Historial | Calendario con enviados, no entregados y descansos (HU-10) |
 
 ## Paso 5. Ajustes del dispositivo
 
