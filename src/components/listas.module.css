@@ -1,0 +1,23 @@
+/* Listas en caja blanca (06a áreas, 06b empresas, tablas de datos). */
+.caja { background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--radio); overflow: hidden; }
+.item {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 8px 16px;
+  background: none; border: 0; border-top: 1px solid var(--linea); text-align: left; cursor: pointer; font-size: 16px;
+}
+.item:first-child { border-top: 0; }
+.item:disabled { color: #6b7785; cursor: default; }
+.itemActivo { background: var(--teal-bg); font-weight: 700; }
+.texto { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.texto small { color: var(--gris); font-size: 13px; }
+.marca { color: var(--gris); font-size: 13px; white-space: nowrap; }
+.radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #5d6a77; flex: none; position: relative; }
+.radioActivo { border-color: var(--teal); }
+.radioActivo::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--teal); }
+
+/* Tabla de pares (05c, 08c) */
+.tabla { background: var(--blanco); border-radius: var(--radio); padding: 4px 16px; border: 1px solid var(--linea); }
+.par { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--linea); font-size: 15px; }
+.par:first-child { border-top: 0; }
+.par span { color: #4f5b67; }
+.par b { text-align: right; }
+.tablaSinLineas .par { border-top: 0; padding: 4px 0; }

@@ -1,0 +1,31 @@
+.grilla { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cabecera { text-align: center; font-size: 13px; font-weight: 600; color: #4f5b67; padding: 4px 0; }
+.dia {
+  position: relative; height: 44px; border-radius: 10px; border: 0; background: var(--descanso);
+  font-size: 15px; font-weight: 500; color: #6b7785; cursor: pointer; padding: 0;
+}
+.dia:disabled { cursor: default; }
+.punto {
+  position: absolute; top: 3px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--teal); border: 1.5px solid #fff;
+}
+.enviado { background: var(--verde); color: #fff; font-weight: 700; }
+.no_entregado { background: var(--rojo); color: #fff; font-weight: 700; }
+.descanso { background: var(--descanso); color: #6b7785; }
+.descanso_futuro { background: #eceff2; color: #a3adb7; }
+.hoy { background: var(--blanco); color: var(--ink); font-weight: 700; box-shadow: inset 0 0 0 2px var(--teal); }
+.hoyEnviado { background: var(--verde); color: #fff; font-weight: 700; box-shadow: inset 0 0 0 2px var(--teal), inset 0 0 0 4px #fff; }
+.programado { background: var(--blanco); color: var(--ink); border: 1.5px dashed #b9c2ca; }
+/* Modo inicio de turno (08d) */
+.inicio { background: var(--teal); color: var(--ink); font-weight: 800; }
+.trabajo { background: var(--teal-bg); color: var(--ink); }
+.puntoOscuro { background: var(--ink); }
+
+.leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: #4f5b67; margin-top: 6px; }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.muestra { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.mes { display: flex; align-items: center; justify-content: space-between; }
+.mes b { font-size: 18px; }
+.flechaMes {
+  width: 44px; height: 44px; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}

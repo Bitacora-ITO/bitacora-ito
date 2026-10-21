@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bitácora ITO</string>
+    <string name="title_activity_main">Bitácora ITO</string>
+    <string name="package_name">cl.usach.bitacoraito</string>
+    <string name="custom_url_scheme">cl.usach.bitacoraito</string>
+</resources>
