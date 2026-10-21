@@ -1,0 +1,22 @@
+.pasos { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 14px; text-align: left; color: var(--gris); }
+.pasos li { display: flex; align-items: center; gap: 12px; }
+.hecho { color: var(--ink); }
+.circulo { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #c5cdd4; display: inline-block; }
+.numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.numeros > div { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; }
+.grande { font-size: 24px; }
+.resolver { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px 16px 16px; }
+.iconoAmbar {
+  width: 82px; height: 82px; border-radius: 50%; background: var(--ambar-bg); border: 2px solid #f2b53a;
+  display: flex; align-items: center; justify-content: center;
+}
+.cabeceraSeccion {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 60px; padding: 8px 12px 8px 16px;
+  background: none; border: 0; text-align: left; cursor: pointer; font-size: 16px;
+}
+.girado { transform: rotate(90deg); }
+.contenidoSeccion { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 8px; }
+.subitem {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; background: var(--fondo); border: 0;
+  border-radius: 10px; padding: 10px 12px; font-size: 14px; cursor: pointer;
+}

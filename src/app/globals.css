@@ -1,0 +1,26 @@
+/* Sistema mínimo del prototipo (docs/prototipo.md · Decisiones de diseño). */
+:root {
+  --teal: #35d2c3;
+  --teal-bg: #ddf7f3;
+  --ink: #1e2b38;
+  --gris: #6b7785;
+  --linea: #dde3e8;
+  --fondo: #f4f6f8;
+  --blanco: #ffffff;
+  --rojo: #c62828;
+  --rojo-bg: #fdecec;
+  --verde: #2e9e5b;
+  --verde-bg: #e2f3e8;
+  --ambar: #b7860f;
+  --ambar-bg: #fff6dd;
+  --descanso: #e3e7eb;
+  --radio: 12px;
+  --toque: 44px; /* objetivo táctil mínimo (WCAG 2.5.8, uso con guantes) */
+  --fuente: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--fondo); color: var(--ink); font-family: var(--fuente); }
+body { font-size: 16px; line-height: 1.35; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button, input, textarea, select { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }

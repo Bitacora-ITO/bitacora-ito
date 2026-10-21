@@ -33,3 +33,16 @@ desktop.ini
 
 # Archivos locales de trabajo
 /local
+
+# Exportación estática para el APK
+/out/
+
+# Llaves de firma del APK (nunca al repositorio)
+*.keystore
+*.jks
+keystore.properties
+
+# Archivos generados
+*.tsbuildinfo
+next-env.d.ts
+scripts/pdf/salida/

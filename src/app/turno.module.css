@@ -1,0 +1,15 @@
+.cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding-top: 20px; margin-bottom: 4px; }
+.iconos { display: flex; gap: 2px; flex: none; }
+.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.vacio {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+  padding: 28px 16px; border: 1.5px dashed #c5cdd4; border-radius: var(--radio); background: var(--blanco);
+}
+.vacioIcono {
+  width: 72px; height: 72px; border-radius: 50%; background: var(--teal-bg);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+}
+.sync { margin: 0; }
+.estadoSync { display: flex; align-items: center; gap: 8px; color: var(--gris); font-size: 15px; margin: 0; min-height: 32px; }
+.titulo { font-size: 22px; white-space: nowrap; }
+.iconoPlano { width: 40px; height: 44px; border: 0; background: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; }

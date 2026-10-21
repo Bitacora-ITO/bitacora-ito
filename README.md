@@ -35,7 +35,12 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 4: historias de usuario y wireframes.** El ambiente de desarrollo quedó configurado en la semana 3: repositorio, ramas, despliegue y documentación inicial. Todavía no hay código de aplicación.
+**Semana 6: prototipo navegable v2.** El prototipo incorpora las dos observaciones del profesor guía:
+
+- las áreas se eligen de una lista y el inspector no las escribe;
+- el PDF se previsualiza antes de aprobarlo y enviarlo.
+
+Además suma un **Historial** con calendario y rol de turnos 7x7. El detalle está en [docs/prototipo.md](docs/prototipo.md#5-cambios-de-la-versión-2). El ambiente de desarrollo quedó configurado en la semana 3. Todavía no hay código de aplicación.
 
 | Hito | Semana | Estado |
 |---|---|---|
@@ -44,6 +49,7 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 | Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | Entregado |
 | Historias de usuario y wireframes (Avance 4) | 4 | Entregado|
 | Prototipo navegable (Avance 5) | 5 | Entregado |
+| Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
