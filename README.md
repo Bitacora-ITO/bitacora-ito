@@ -50,6 +50,7 @@ Además suma un **Historial** con calendario y rol de turnos 7x7. El detalle est
 | Historias de usuario y wireframes (Avance 4) | 4 | Entregado|
 | Prototipo navegable (Avance 5) | 5 | Entregado |
 | Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
+| Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
