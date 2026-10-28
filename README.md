@@ -50,6 +50,7 @@ Además suma un **Historial** con calendario y rol de turnos 7x7. El detalle est
 | Historias de usuario y wireframes (Avance 4) | 4 | Entregado|
 | Prototipo navegable (Avance 5) | 5 | Entregado |
 | Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
+| Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
@@ -125,3 +126,4 @@ Equipo N.º 1, modalidad online.
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
 - [Prototipo navegable: mapa de navegación, estados y registro de decisiones](docs/prototipo.md) · [abrir en Figma](https://www.figma.com/proto/6lebHYRTbcb8f5WOnMW3pv/Sin-t%C3%ADtulo?node-id=1-2&p=f&t=XOez3IwfZ95WUirR-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=1%3A2&show-proto-sidebar=1)
+- [Análisis ético, de sostenibilidad e impacto](docs/etica.md)
