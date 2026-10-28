@@ -35,16 +35,17 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 6: prototipo navegable v2.** El backlog tiene diez historias con sus criterios de aceptación. El prototipo incorpora las observaciones del profesor guía: las áreas se eligen de una lista y el PDF se previsualiza antes de enviarlo. También suma el Historial con calendario. El ambiente de desarrollo quedó configurado en la semana 3. Todavía no hay código de aplicación.
+**Semana 7: análisis ético, de sostenibilidad e impacto.** El análisis está en [docs/etica.md](docs/etica.md): mapa de impacto, ficha de datos personales, accesibilidad y matriz de riesgos. La aplicación ya tiene código: está publicada en Vercel y se genera también como APK para Android.
 
 | Hito | Semana | Estado |
 |---|---|---|
 | Propuesta de valor, alcance, usuarios (Avance 1) | 1 | Entregado |
 | Propuesta de solución, caso de uso, maqueta, roadmap (Avance 2) | 2 | Entregado |
 | Repositorio, README, estructura de datos, uso de IA (Avance 3) | 3 | Entregado |
-| Historias de usuario y wireframes (Avance 4) | 4 | Entregado |
+| Historias de usuario y wireframes (Avance 4) | 4 | Entregado|
 | Prototipo navegable (Avance 5) | 5 | Entregado |
 | Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
+| Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
 | PoC del flujo principal | 8 | Pendiente |
 | MVP validado con inspectores | 12 | Pendiente |
 
@@ -89,9 +90,7 @@ bitacora-ito/
 ├── docs/                    Documentación del proyecto
 │   ├── 01-estructura-datos.md
 │   ├── 02-uso-de-ia.md
-│   ├── historias.md
-│   ├── prototipo.md         Mapa de navegación y registro de decisiones
-│   └── wireframes/          Wireframe anotado del flujo principal
+│   └── etica.md
 ├── src/                     Código de la aplicación
 ├── public/                  Archivos estáticos
 ├── .env.example             Ejemplo de variables de entorno (sin credenciales reales)
@@ -121,7 +120,6 @@ Equipo N.º 1, modalidad online.
 
 - [Estructura de datos preliminar](docs/01-estructura-datos.md)
 - [Primer uso documentado de IA](docs/02-uso-de-ia.md)
-- [Historias de usuario y criterios de aceptación](docs/historias.md)
-- [Wireframe del flujo principal](docs/wireframes/)
-- [Prototipo navegable: mapa de navegación y registro de decisiones](prototipo.md)
+- [Análisis ético, de sostenibilidad e impacto](docs/etica.md)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
+- [Prototipo navegable: mapa de navegación, estados y registro de decisiones](docs/prototipo.md) · [abrir en Figma](https://www.figma.com/proto/6lebHYRTbcb8f5WOnMW3pv/Sin-t%C3%ADtulo?node-id=1-2&p=f&t=XOez3IwfZ95WUirR-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=1%3A2&show-proto-sidebar=1)
