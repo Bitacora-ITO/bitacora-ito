@@ -1,9 +1,10 @@
-# Estructura de datos preliminar
+ Estructura de datos preliminar
 
 **Proyecto:** Bitácora - ITO
 **Fecha:** 30 de septiembre de 2026
 **Base:** Reporte Diario de Inspección de Construcción, código de proyecto 4600026893-8211-FRMCS-00001, revisión 1. Ejemplares del 24 y 27 de septiembre de 2026, turno día.
 **Estado:** preliminar. Se ajustará a medida que avance el desarrollo.
+**Datos personales:** la finalidad, quién ve y cuánto se conserva cada dato personal están en la [ficha de tratamiento de datos](etica.md#2-ficha-de-tratamiento-de-datos-personales) (semana 7).
 **Actualización:** 20 de octubre de 2026 (versión 2). Recoge las observaciones del profesor guía: las áreas se eligen de una lista y el PDF se previsualiza. Suma además el historial con rol de turnos (ver §9).
 
 ---
@@ -289,3 +290,4 @@ Los cambios que introdujo esa segunda etapa:
 | Se agregó `area_turno` (área + empresa + orden) | Al agregar un área se elige también la empresa, y el orden numera el reporte (n.0 área, n.1 empresa) |
 | El reporte pasa a `generado` con la vista previa y a `aprobado` solo desde ella (regla 9) | Observación del profesor guía: el inspector debe revisar el PDF antes de enviarlo |
 | Se agregó `rol_turno` (7x7 y primer día de turno) | El historial debe distinguir los días de descanso de los informes no entregados |
+
