@@ -1,4 +1,7 @@
-// Genera el PDF del reporte diario en el formato del mandante (FRMCS-00001), con @react-pdf/renderer.
+// Genera el PDF del reporte diario con @react-pdf/renderer. Hay dos diseños con los mismos datos:
+//  - "bitacora" (por defecto): diseño propio de Bitácora ITO, con su logo (DocumentoBitacora.tsx);
+//  - "mandante": réplica del formato real FRMCS-00001 REV1 (DocumentoInforme.tsx), que se usa
+//    en scripts/pdf para compararlo con el informe original.
 // Corre en el navegador y sin red: las fuentes (Carlito, métricamente igual a Calibri) y el logo salen
 // de /public, y las fotos llegan como data URL o como ruta pública. Para generarlo en Node (verificación
 // en scripts/pdf), se fija la base de recursos con rutas absolutas de archivo y un lector de archivos.
@@ -6,6 +9,7 @@ import { createElement } from "react";
 import { Font, pdf } from "@react-pdf/renderer";
 import type { DatosInforme, FotoInforme } from "./tipos";
 import DocumentoInforme from "./componentes/DocumentoInforme";
+import DocumentoBitacora from "./componentes/DocumentoBitacora";
 import type { FotoPreparada, SeccionPreparada } from "./componentes/Seccion";
 import { desdeBase64, prepararImagen } from "./componentes/imagenes";
 import { FAMILIA } from "./componentes/medidas";
@@ -79,10 +83,17 @@ async function prepararFoto(f: FotoInforme): Promise<FotoPreparada | null> {
   }
 }
 
-export async function generarPdfInforme(datos: DatosInforme): Promise<Blob> {
+export type FormatoInforme = "bitacora" | "mandante";
+
+const LOGO: Record<FormatoInforme, string> = {
+  bitacora: "/informe/logo-bitacora.png",
+  mandante: "/informe/logo-jej.png",
+};
+
+export async function generarPdfInforme(datos: DatosInforme, formato: FormatoInforme = "bitacora"): Promise<Blob> {
   const familia = registrarFuentes();
   const [logo, secciones] = await Promise.all([
-    leerBytes("/informe/logo-jej.png")
+    leerBytes(LOGO[formato])
       .then(prepararImagen)
       .then((i) => i.dataUrl)
       .catch(() => undefined),
@@ -93,7 +104,8 @@ export async function generarPdfInforme(datos: DatosInforme): Promise<Blob> {
       }),
     ),
   ]);
-  const doc = createElement(DocumentoInforme, { datos, secciones, logo, familia });
+  const props = { datos, secciones, logo, familia };
+  const doc = formato === "mandante" ? createElement(DocumentoInforme, props) : createElement(DocumentoBitacora, props);
   // pdf() espera un <Document>; DocumentoInforme lo devuelve.
   return pdf(doc as unknown as Parameters<typeof pdf>[0]).toBlob();
 }
