@@ -1,5 +1,8 @@
 // Envío del reporte al mandante por correo, a través de la función de Vercel /api/enviar.
 // CONTRATO: las pantallas usan `enviarReporte` y `procesarCola` (no cambiar las firmas).
+// Semana 8: el inspector ya no envía al mandante; entrega su parte al jefe de turno
+// (`entregarAlJefe`) y el jefe envía el consolidado (`enviarCuerpoAlMandante`). `enviarReporte`
+// queda para los envíos antiguos que sigan en cola en algún teléfono.
 //
 // Flujo:
 //  1. Solo se envía un reporte `aprobado` con su PDF en `db.pdfs`.
@@ -11,7 +14,8 @@
 import { Capacitor } from "@capacitor/core";
 import { ahoraISO, db, nuevoId } from "./db";
 import { blobABase64, hayRed } from "./nativo";
-import { sincronizar, subirPdf } from "./sync";
+import { pendientesDeReporte, sincronizar, subirPdf } from "./sync";
+import { supabaseConfigurado } from "./supabase";
 import type { Envio, Reporte } from "./types";
 
 export type ResultadoEnvio =
@@ -256,6 +260,93 @@ async function armarCuerpo(reporte: Reporte, destinatarios: string[], pdf: Blob)
   if (pdf.size > MAX_PDF_EN_CUERPO) return null;
   cuerpo.pdf.base64 = await blobABase64(pdf);
   return cuerpo;
+}
+
+// ───────────────────────── Entrega al jefe de turno (semana 8) ─────────────────────────
+//
+// Pedido del profesor guía: cada inspector entrega su parte y el jefe de turno envía un solo
+// reporte consolidado al mandante. El inspector ya no envía: «Entregar al jefe de turno» deja el
+// reporte `entregado` (en Supabase: `aprobado` + `entregado_en`, ver sync.ts) y sube su parte
+// (reporte, áreas, registros, alertas, fotos y el PDF parcial). Sin red queda en cola: la subida
+// la repite `sincronizar()` cada vez que vuelve la señal (lib/sync.ts y components/Proveedor.tsx).
+
+export type ResultadoEntrega =
+  | { estado: "entregado"; entregadoEn: string } // ya está en la nube: el jefe de turno la ve
+  | { estado: "en_cola"; entregadoEn: string; motivo: "sin_red" | "sin_nube" | "error"; error?: string }
+  | { estado: "fallido"; error: string }; // no se pudo marcar (reporte sin aprobar, sin PDF…)
+
+/** Marca la parte del inspector como entregada al jefe de turno y la sube a Supabase. */
+export async function entregarAlJefe(reporteId: string): Promise<ResultadoEntrega> {
+  const [reporte, pdf] = await Promise.all([db.reportes.get(reporteId), db.pdfs.get(reporteId)]);
+  if (!reporte) return { estado: "fallido", error: "No se encontró el reporte del turno." };
+  if (reporte.estado !== "aprobado" && reporte.estado !== "entregado") {
+    return { estado: "fallido", error: "La parte debe aprobarse desde la vista previa antes de entregarla." };
+  }
+  if (!pdf) return { estado: "fallido", error: "Falta el PDF de tu parte. Vuelve a abrir la vista previa." };
+
+  const entregadoEn = reporte.entregadoEn && reporte.estado === "entregado" ? reporte.entregadoEn : ahoraISO();
+  if (reporte.estado !== "entregado") {
+    await db.reportes.update(reporteId, { estado: "entregado", entregadoEn, sincronizadoEn: undefined });
+    // Al entregar se sube la parte completa: lo sembrado como demostración (o algo que ya se hubiera
+    // marcado como subido) se vuelve a enviar. El upsert por id no duplica nada.
+    await db.transaction("rw", db.registros, db.alertas, db.fotografias, async () => {
+      const regs = await db.registros.where("reporteId").equals(reporteId).toArray();
+      const als = await db.alertas.where("reporteId").equals(reporteId).toArray();
+      await db.registros.bulkUpdate(regs.map((r) => ({ key: r.id, changes: { sincronizadoEn: undefined } })));
+      await db.alertas.bulkUpdate(als.map((a) => ({ key: a.id, changes: { sincronizadoEn: undefined } })));
+      const fotos = [
+        ...(await db.fotografias.where("registroId").anyOf(regs.map((r) => r.id)).toArray()),
+        ...(await db.fotografias.where("alertaId").anyOf(als.map((a) => a.id)).toArray()),
+      ];
+      await db.fotografias.bulkUpdate(fotos.map((f) => ({ key: f.id, changes: { sincronizadoEn: undefined } })));
+    });
+  }
+  return subirEntrega(reporteId, entregadoEn);
+}
+
+/** Vuelve a intentar subir una parte ya entregada (botón «Reintentar ahora»). */
+export async function reintentarEntrega(reporteId: string): Promise<ResultadoEntrega> {
+  const reporte = await db.reportes.get(reporteId);
+  if (!reporte || reporte.estado !== "entregado") return { estado: "fallido", error: "La parte no está entregada." };
+  return subirEntrega(reporteId, reporte.entregadoEn ?? ahoraISO());
+}
+
+async function subirEntrega(reporteId: string, entregadoEn: string): Promise<ResultadoEntrega> {
+  if (!supabaseConfigurado) return { estado: "en_cola", entregadoEn, motivo: "sin_nube" };
+  if (!(await hayRed())) return { estado: "en_cola", entregadoEn, motivo: "sin_red" };
+  const r = await sincronizar(); // nunca lanza: si falla, deja el error y se reintenta después
+  if ((await pendientesDeReporte(reporteId)) === 0) return { estado: "entregado", entregadoEn };
+  if (!(await hayRed())) return { estado: "en_cola", entregadoEn, motivo: "sin_red" };
+  return { estado: "en_cola", entregadoEn, motivo: "error", error: r.error };
+}
+
+// ───────────────────────── Envío del consolidado (jefe de turno) ─────────────────────────
+
+export type RespuestaEnvio = { ok: true; mensajeId?: string } | { ok: false; error: string; sinRed?: boolean };
+
+/**
+ * Llama a la misma función /api/enviar que usaba el inspector, con el cuerpo ya armado
+ * (el jefe de turno manda la ruta del PDF consolidado en el bucket `reportes`). La API no cambia.
+ */
+export async function enviarCuerpoAlMandante(cuerpo: CuerpoEnvio): Promise<RespuestaEnvio> {
+  if (!(await hayRed())) return { ok: false, error: "Sin conexión. Vuelve a intentarlo cuando haya señal.", sinRed: true };
+  const url = urlApi();
+  if (!url) return { ok: false, error: "Falta configurar NEXT_PUBLIC_API_URL (dirección de Vercel) en el APK." };
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-bitacora-token": process.env.NEXT_PUBLIC_BITACORA_TOKEN ?? "" },
+      body: JSON.stringify(cuerpo),
+      signal: AbortSignal.timeout ? AbortSignal.timeout(ESPERA_RESPUESTA_MS) : undefined,
+    });
+  } catch (e) {
+    const sinRed = !(await hayRed());
+    return { ok: false, sinRed, error: sinRed ? "Se cortó la señal durante el envío." : `No se pudo contactar el servidor de correo (${mensaje(e)}).` };
+  }
+  const json = (await respuesta.json().catch(() => null)) as { ok?: boolean; mensajeId?: string; error?: string } | null;
+  if (!respuesta.ok || !json?.ok) return { ok: false, error: json?.error ?? `El servidor respondió ${respuesta.status} ${respuesta.statusText}.` };
+  return { ok: true, mensajeId: json.mensajeId };
 }
 
 function mensaje(e: unknown): string {
