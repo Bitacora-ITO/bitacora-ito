@@ -5,6 +5,7 @@
 //     --packages=external --jsx=automatic --outfile=scripts/pdf/salida/generar.mjs
 //   node scripts/pdf/salida/generar.mjs [salida.pdf] [fixture]
 //   fixture: "27-09" (por defecto) o "largo" (varias páginas, para probar el paginado).
+//   formato: "mandante" (por defecto, para comparar con el original) o "bitacora" (diseño propio).
 // (tsx no sirve aquí: @react-pdf es solo ESM y tsx lo cargaría como CommonJS.)
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -15,6 +16,7 @@ import type { DatosInforme } from "../../src/lib/informe/tipos";
 const raiz = process.env.RAIZ_BITACORA ?? process.cwd();
 const salida = path.resolve(process.argv[2] ?? path.join(raiz, "scripts", "pdf", "salida", "generado-27-09.pdf"));
 const cual = process.argv[3] ?? "27-09";
+const formato = process.argv[4] === "bitacora" ? "bitacora" : "mandante";
 
 function fixtureLargo(): DatosInforme {
   const base = datosInforme2709;
@@ -38,7 +40,7 @@ async function main() {
   fijarBaseRecursos(path.join(raiz, "public"), async (r) => new Uint8Array(await readFile(r)));
   const datos = cual === "largo" ? fixtureLargo() : datosInforme2709;
   const t0 = Date.now();
-  const blob = await generarPdfInforme(datos);
+  const blob = await generarPdfInforme(datos, formato);
   const bytes = new Uint8Array(await blob.arrayBuffer());
   await mkdir(path.dirname(salida), { recursive: true });
   await writeFile(salida, bytes);
