@@ -5,10 +5,7 @@ export type Turno = "dia" | "noche";
 export type Clima = "despejado" | "nublado" | "lluvia";
 export type ColumnaAlerta = "construccion" | "laboratorio" | "topografia" | "interferencia";
 export type Criticidad = "baja" | "media" | "alta";
-/** "entregado": el inspector dejó su parte disponible para el jefe de turno (semana 8). */
-export type EstadoReporte = "borrador" | "generado" | "aprobado" | "entregado" | "enviado";
-/** Rol con que se usa la app en este teléfono (la maqueta no tiene inicio de sesión). */
-export type RolApp = "inspector" | "jefatura" | "admin";
+export type EstadoReporte = "borrador" | "generado" | "aprobado" | "enviado";
 export type EstadoEnvio = "en_cola" | "enviando" | "enviado" | "fallido";
 export type TipoEmpresa = "contratista" | "laboratorio" | "topografia" | "obras_civiles" | "otro";
 
@@ -16,9 +13,7 @@ export interface Usuario {
   id: string;
   nombre: string; // "Jorge Orellana S."
   correo: string;
-  rol: RolApp; // "jefatura" = jefe de turno
-  contratoId?: string;
-  activo?: boolean;
+  rol: "inspector" | "jefatura" | "admin";
 }
 
 export interface Contrato {
@@ -65,7 +60,6 @@ export interface Reporte {
   resumenTurno?: string;
   horaGeneracion?: string;
   horaAprobacion?: string;
-  entregadoEn?: string;
   aprobadoPor?: string;
   sincronizadoEn?: string;
 }
@@ -159,22 +153,3 @@ export interface Ajuste {
 
 /** Estado de un día en el calendario del historial. */
 export type EstadoDia = "enviado" | "no_entregado" | "descanso" | "hoy" | "programado" | "descanso_futuro";
-
-/** Reporte consolidado del turno, armado por el jefe de turno con las partes de los inspectores. */
-export interface Consolidado {
-  id: string;
-  contratoId: string;
-  fecha: string; // "2026-10-30"
-  turno: Turno;
-  correlativo: string;
-  consolidadoPor: string; // usuarioId del jefe de turno
-  partes: string[]; // ids de los reportes de los inspectores incluidos
-  elaboradoPorTexto: string; // "Jorge Orellana S. / Alberto Castillo"
-  climaTurno: Clima;
-  climaProyeccion: Clima;
-  estado: "borrador" | "generado" | "aprobado" | "enviado";
-  rutaPdf?: string; // en el bucket `reportes`
-  pdf?: Blob; // copia local para la vista previa
-  enviadoEn?: string;
-  creadoEn: string;
-}

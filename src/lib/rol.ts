@@ -1,5 +1,5 @@
 // Rol de turnos 7x7 y estado de cada día del calendario (docs/01-estructura-datos.md §4.11 y regla 10).
-import type { EstadoDia, Reporte, RolTurno } from "./types";
+import type { EstadoDia, RolTurno } from "./types";
 import { celdasMes, diferenciaDias, sumarDias } from "./fechas";
 
 type RolBasico = Pick<RolTurno, "diasTrabajo" | "diasDescanso" | "fechaInicio">;
@@ -45,16 +45,6 @@ export function estadoDia(fecha: string, hoy: string, rol: RolBasico, enviados: 
   const trabajo = esDiaTrabajo(fecha, rol);
   if (fecha < hoy) return trabajo ? "no_entregado" : "descanso";
   return trabajo ? "programado" : "descanso_futuro";
-}
-
-/**
- * Semana 8: el inspector ya no envía al mandante, entrega su parte al jefe de turno. Para el calendario,
- * un día con la parte ENTREGADA cuenta como cumplido (verde), igual que uno con envío `enviado`.
- */
-export function conEntregados(enviados: Set<string>, reportes: Pick<Reporte, "fecha" | "estado">[]): Set<string> {
-  const cumplidos = new Set(enviados);
-  for (const r of reportes) if (r.estado === "entregado") cumplidos.add(r.fecha);
-  return cumplidos;
 }
 
 export interface TotalesMes {

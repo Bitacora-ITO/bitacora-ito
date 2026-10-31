@@ -120,7 +120,7 @@ En palabras:
 
 > `frente_padre_id` reproduce la jerarquía del reporte: 1.0 Muro Sotelo contiene 1.1, 1.2 y 1.3. `orden` fija la secuencia en que se imprimen las secciones.
 >
-> **Versión 2:** el catálogo de áreas **viene precargado con el contrato** y lo mantiene la jefatura. El inspector no escribe áreas: las elige de una lista desplegable. Las 14 áreas de ejemplo salen de la lista del contrato: Vertedero Morning Glory, Acceso a obra de captación, Fortificación Tramo B, Peralte Muro Sotelo, Instrumentación geotécnica Muro Sotelo, Torre de Captación, Túnel PAMo, Sistema de Manejo de Aguas, Mentidero, La Bodega, Tramo A, Tramo B, Traucalén y Sondajes.
+> **Versión 2:** el catálogo de áreas **viene precargado con el contrato** y lo mantiene la jefatura. El inspector no escribe áreas: las elige de una lista desplegable. Las 14 áreas de ejemplo salen de la lista del contrato: Vertedero Morning Glory, Acceso a obra de captación, Fortificación Tramo B, Peralte Muro Sotelo, Instrumentación geotécnica Muro Sotelo, Torre de Captación, Túnel PAMo, Sistema de Manejo de Aguas, Mentidero, La Bodega, Tramo A, Tramo B, Traucalón y Sondajes.
 >
 > `ultimo_uso` permite proponer primero las áreas del reporte anterior. `vigente` deja de ofrecer las que ya terminaron, sin borrar los reportes donde aparecen. En la versión 2, `numero` ya no se escribe: la numeración del reporte la da `area_turno.orden`.
 
