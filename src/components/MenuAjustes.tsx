@@ -1,16 +1,10 @@
 "use client";
-// Ajustes de la demostración: quién usa el teléfono (y su rol), catálogo, destinatario del correo de prueba
-// y reinicio de los datos.
+// Ajustes de la demostración: destinatario del correo de prueba y reinicio de los datos.
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { CLAVES, fijarDestinatarioPrueba, leerAjuste } from "@/lib/repositorio";
 import { reiniciarDemostracion } from "@/lib/seed";
-import { useSesion } from "@/lib/sesion";
-import { CLAVES_CATALOGO } from "@/lib/catalogo";
 import { mensaje, useApp } from "./Proveedor";
-import { ListaIdentidades } from "./catalogo/ElegirIdentidad";
 import { Aviso, Etiqueta, Giro, HojaInferior, MensajeError, estilos as s } from "./ui";
-import { IcoDocumento } from "./iconos";
 
 export default function MenuAjustes({ onCerrar }: { onCerrar: () => void }) {
   const { recargar, refrescar, contexto } = useApp();
@@ -19,12 +13,9 @@ export default function MenuAjustes({ onCerrar }: { onCerrar: () => void }) {
   const [ok, setOk] = useState<string>();
   const [confirmar, setConfirmar] = useState(false);
   const [trabajando, setTrabajando] = useState(false);
-  const sesion = useSesion();
-  const [versionCatalogo, setVersionCatalogo] = useState<string>();
 
   useEffect(() => {
     leerAjuste(CLAVES.destinatario).then((v) => v && setCorreo(v)).catch(() => {});
-    leerAjuste(CLAVES_CATALOGO.versionLocal).then((v) => setVersionCatalogo(v ?? "0")).catch(() => {});
   }, []);
 
   async function guardarCorreo() {
@@ -52,14 +43,6 @@ export default function MenuAjustes({ onCerrar }: { onCerrar: () => void }) {
 
   return (
     <HojaInferior titulo="Ajustes de la demostración" onCerrar={onCerrar}>
-      <Etiqueta derecha={versionCatalogo && versionCatalogo !== "0" ? `Catálogo v${versionCatalogo}` : "Catálogo de ejemplo"}>¿Quién usa este teléfono?</Etiqueta>
-      <ListaIdentidades actualId={sesion?.usuario?.id} alElegir={async () => { await recargar(); refrescar(); }} />
-      {sesion?.rol === "admin" && (
-        <Link href="/admin" className={`${s.botonSecundario} ${s.botonChico}`} onClick={onCerrar}>
-          <IcoDocumento /> Administrar catálogo
-        </Link>
-      )}
-
       <Etiqueta htmlFor="correo-prueba" derecha="Del contrato">Destinatario del correo de prueba</Etiqueta>
       <input
         id="correo-prueba" className={s.entrada} type="email" inputMode="email" autoComplete="email"

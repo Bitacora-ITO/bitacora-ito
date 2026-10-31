@@ -3,8 +3,7 @@
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fechasEnviadas, rolDelUsuario } from "@/lib/repositorio";
-import { conEntregados, estadoDia, esInicioTurno, inicioTurnoVigente, totalesMes } from "@/lib/rol";
-import { db } from "@/lib/db";
+import { estadoDia, esInicioTurno, inicioTurnoVigente, totalesMes } from "@/lib/rol";
 import { capitalizar, diaMes, hoyLocal, nombreMes } from "@/lib/fechas";
 import type { EstadoDia } from "@/lib/types";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -15,7 +14,7 @@ import { IcoAtras, IcoFlecha } from "@/components/iconos";
 import h from "./historial.module.css";
 
 const ETIQUETA: Record<EstadoDia, string> = {
-  enviado: "Entregado o enviado", no_entregado: "No entregado", descanso: "Descanso", hoy: "Hoy",
+  enviado: "Enviado", no_entregado: "No entregado", descanso: "Descanso", hoy: "Hoy",
   programado: "Turno programado", descanso_futuro: "Descanso programado",
 };
 
@@ -33,11 +32,8 @@ function Historial() {
   const mes0 = mes - 1;
 
   const { datos } = useConsulta(async () => {
-    const [rol, enviados, reportes] = await Promise.all([
-      rolDelUsuario(), fechasEnviadas(contexto.contrato.id), db.reportes.where("contratoId").equals(contexto.contrato.id).toArray(),
-    ]);
-    // «Entregado al jefe de turno» cuenta como cumplido (semana 8).
-    return { rol, enviados: conEntregados(enviados, reportes) };
+    const [rol, enviados] = await Promise.all([rolDelUsuario(), fechasEnviadas(contexto.contrato.id)]);
+    return { rol, enviados };
   }, [contexto.contrato.id]);
 
   if (!datos) return <Cargando />;

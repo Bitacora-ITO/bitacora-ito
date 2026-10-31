@@ -1,10 +1,6 @@
 "use client";
 // P1 · Turno y áreas (HU-01): fecha, turno, clima, áreas del turno con su estado y acceso al reporte.
-// Semana 8, navegación por rol: el inspector ve P1; el jefe de turno («jefatura») ve la consolidación
-// del turno y, si también inspecciona, entra a sus registros con «Mis registros del turno».
 import { useEffect, useState } from "react";
-import { useSesion } from "@/lib/sesion";
-import InicioJefe, { BarraJefe, CLAVE_MIS_REGISTROS } from "@/components/consolidacion/InicioJefe";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -16,7 +12,6 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import FilaArea from "@/components/FilaArea";
 import MenuAjustes from "@/components/MenuAjustes";
-import AvisoCatalogo from "@/components/catalogo/AvisoCatalogo";
 import { Aviso, Cargando, Etiqueta, Giro, MensajeError, Pantalla, Segmentado, estilos as s } from "@/components/ui";
 import {
   IcoAjustes, IcoAlerta, IcoCalendario, IcoCheck, IcoDocumento, IcoMas, IcoSinSenal, IcoUbicacion,
@@ -25,23 +20,7 @@ import p from "./turno.module.css";
 
 const OPC_CLIMA = (Object.keys(CLIMA) as Clima[]).map((valor) => ({ valor, etiqueta: CLIMA[valor] }));
 
-export default function Inicio() {
-  const sesion = useSesion();
-  const [misRegistros, setMisRegistros] = useState<boolean | null>(null);
-  useEffect(() => {
-    try { setMisRegistros(sessionStorage.getItem(CLAVE_MIS_REGISTROS) === "1"); } catch { setMisRegistros(false); }
-  }, []);
-  const verMisRegistros = (si: boolean) => {
-    try { if (si) sessionStorage.setItem(CLAVE_MIS_REGISTROS, "1"); else sessionStorage.removeItem(CLAVE_MIS_REGISTROS); } catch { /* sin sessionStorage */ }
-    setMisRegistros(si);
-  };
-  if (!sesion || misRegistros === null) return <Cargando texto="Cargando el turno…" />;
-  if (sesion.rol !== "jefatura") return <Turno />;
-  if (!misRegistros) return <InicioJefe alVerMisRegistros={() => verMisRegistros(true)} />;
-  return <><BarraJefe alVolver={() => verMisRegistros(false)} /><Turno /></>;
-}
-
-function Turno() {
+export default function Turno() {
   const router = useRouter();
   const app = useApp();
   const { contexto, reporteHoyId, conectado, pendientes, ultimaSync, errorSync, sincronizando } = app;
@@ -77,7 +56,7 @@ function Turno() {
   }
 
   function revisar() {
-    if (reporte.estado === "aprobado" || reporte.estado === "entregado" || reporte.estado === "enviado" || envio) router.push("/enviar");
+    if (reporte.estado === "aprobado" || reporte.estado === "enviado" || envio) router.push("/enviar");
     else router.push("/borrador");
   }
 
@@ -104,7 +83,7 @@ function Turno() {
           </div>
           {!hayRegistros && <p className={s.notaPie}>Disponible cuando haya registros</p>}
           <button className={s.botonPrimario} disabled={!hayRegistros} onClick={revisar}>
-            <IcoDocumento /> {reporte.estado === "enviado" ? "Ver reporte enviado" : reporte.estado === "entregado" ? "Ver mi parte entregada" : "Revisar reporte del turno"}
+            <IcoDocumento /> {reporte.estado === "enviado" ? "Ver reporte enviado" : "Revisar reporte del turno"}
           </button>
         </>
       }
@@ -123,8 +102,6 @@ function Turno() {
           </button>
         </div>
       </div>
-
-      <AvisoCatalogo />
 
       {!editable && (
         <Aviso tono={reporte.estado === "enviado" ? "verde" : "ambar"} icono={<IcoCheck />}
