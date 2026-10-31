@@ -1,6 +1,7 @@
 "use client";
 // P4 · Borrador del reporte (HU-06): 04a cargando, 04b con datos, 04c áreas sin resolver (regla 2).
 import { useEffect, useState } from "react";
+import { useSesion } from "@/lib/sesion";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -21,6 +22,7 @@ const PASOS = ["Áreas con sus registros", "Tabla de alertas", "Anexo fotográfi
 export default function Borrador() {
   const router = useRouter();
   const { contexto, reporteHoyId } = useApp();
+  const sesion = useSesion();
   const [paso, setPaso] = useState(0);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState<string>();
@@ -71,9 +73,13 @@ export default function Borrador() {
 
   if (!editable) {
     return (
-      <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/enviar")}>Ver estado del envío</button>}>
+      <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/enviar")}>Ver estado</button>}>
         <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Borrador del reporte" />
-        <Aviso tono="gris" titulo="El reporte ya fue aprobado.">Un reporte enviado no se edita; su estado está en «Enviar al mandante».</Aviso>
+        <Aviso tono="gris" titulo="El reporte ya fue aprobado.">
+          {sesion?.rol === "jefatura"
+            ? "Un reporte enviado no se edita. El envío al mandante se hace desde la consolidación del turno."
+            : "Un reporte enviado no se edita. Tu parte se entrega al jefe de turno, que envía el reporte al mandante."}
+        </Aviso>
       </Pantalla>
     );
   }
@@ -119,6 +125,11 @@ export default function Borrador() {
       <h2 className={s.h1}>Reporte {contexto.contrato.numero}-{numeroCorto(reporte.correlativo)}</h2>
       <div><Chip tono="teal">Borrador generado automáticamente</Chip></div>
       {error && <MensajeError>{error}</MensajeError>}
+      {reporte.estado === "entregado" && (
+        <Aviso tono="ambar" icono={<IcoAlerta />} titulo="Ya entregaste tu parte al jefe de turno">
+          Si cambias algo, vuelve a borrador y tendrás que revisarla y entregarla de nuevo.
+        </Aviso>
+      )}
 
       <Etiqueta>Resumen del turno</Etiqueta>
       <div className={b.numeros}>
