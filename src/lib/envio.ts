@@ -275,18 +275,21 @@ export type ResultadoEntrega =
   | { estado: "en_cola"; entregadoEn: string; motivo: "sin_red" | "sin_nube" | "error"; error?: string }
   | { estado: "fallido"; error: string }; // no se pudo marcar (reporte sin aprobar, sin PDF…)
 
-/** Marca la parte del inspector como entregada al jefe de turno y la sube a Supabase. */
-export async function entregarAlJefe(reporteId: string): Promise<ResultadoEntrega> {
-  const [reporte, pdf] = await Promise.all([db.reportes.get(reporteId), db.pdfs.get(reporteId)]);
+/**
+ * Cierra y firma la parte del inspector y la sube a Supabase (semana 8 v2, pedido de Marcela): el inspector
+ * no genera PDF; firma con su clave que envía la información y solo desde ahí el jefe de turno la ve.
+ * La firma queda en `aprobadoPor` / `horaAprobacion` (en la nube: `aprobado_por`, `hora_aprobacion`).
+ */
+export async function entregarAlJefe(reporteId: string, firmadoPor: string): Promise<ResultadoEntrega> {
+  const reporte = await db.reportes.get(reporteId);
   if (!reporte) return { estado: "fallido", error: "No se encontró el reporte del turno." };
-  if (reporte.estado !== "aprobado" && reporte.estado !== "entregado") {
-    return { estado: "fallido", error: "La parte debe aprobarse desde la vista previa antes de entregarla." };
-  }
-  if (!pdf) return { estado: "fallido", error: "Falta el PDF de tu parte. Vuelve a abrir la vista previa." };
+  if (reporte.estado === "enviado") return { estado: "fallido", error: "Este reporte ya se envió al mandante." };
 
   const entregadoEn = reporte.entregadoEn && reporte.estado === "entregado" ? reporte.entregadoEn : ahoraISO();
   if (reporte.estado !== "entregado") {
-    await db.reportes.update(reporteId, { estado: "entregado", entregadoEn, sincronizadoEn: undefined });
+    await db.reportes.update(reporteId, {
+      estado: "entregado", entregadoEn, aprobadoPor: firmadoPor, horaAprobacion: entregadoEn, sincronizadoEn: undefined,
+    });
     // Al entregar se sube la parte completa: lo sembrado como demostración (o algo que ya se hubiera
     // marcado como subido) se vuelve a enviar. El upsert por id no duplica nada.
     await db.transaction("rw", db.registros, db.alertas, db.fotografias, async () => {

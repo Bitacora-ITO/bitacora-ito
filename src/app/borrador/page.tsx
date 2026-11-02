@@ -118,12 +118,12 @@ export default function Borrador() {
     <Pantalla pie={
       <>
         <button className={s.botonSecundario} onClick={() => router.push("/")}>Editar registros</button>
-        <button className={s.botonPrimario} onClick={() => router.push("/vista-previa")}>Ver vista previa del PDF</button>
+        <button className={s.botonPrimario} onClick={() => router.push("/enviar")}>Cerrar y enviar al jefe de turno</button>
       </>
     }>
       <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Borrador del reporte" />
       <h2 className={s.h1}>Reporte {contexto.contrato.numero}-{numeroCorto(reporte.correlativo)}</h2>
-      <div><Chip tono="teal">Borrador generado automáticamente</Chip></div>
+      <div><Chip tono="teal">Revisa tu parte antes de cerrarla</Chip></div>
       {error && <MensajeError>{error}</MensajeError>}
       {reporte.estado === "entregado" && (
         <Aviso tono="ambar" icono={<IcoAlerta />} titulo="Ya entregaste tu parte al jefe de turno">

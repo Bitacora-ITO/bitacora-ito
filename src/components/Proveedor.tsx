@@ -1,16 +1,18 @@
 "use client";
 // Arranque de la app: siembra los datos de demostración, crea el reporte de hoy (regla 1),
 // procesa la cola de envíos, sincroniza y vuelve a intentarlo cada vez que vuelve la señal.
-// También revisa si hay un catálogo nuevo (al abrir y al volver la red) y, al primer uso,
-// pide elegir quién usa el teléfono.
+// También revisa si hay un catálogo nuevo (al abrir y al volver la red) y pide iniciar sesión.
+// Semana 8 v2: con señal sube lo registrado cada 20 s (el jefe ve lo de cada inspector sin esperar la entrega)
+// y cada rol queda limitado a sus pantallas (lib/sesion.ts → rutaPermitida).
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { sembrarSiFalta } from "@/lib/seed";
 import { asegurarReporteHoy, obtenerContexto, type Contexto } from "@/lib/repositorio";
 import { alCambiarRed, hayRed } from "@/lib/nativo";
 import { procesarCola } from "@/lib/envio";
 import { contarPendientes, sincronizar } from "@/lib/sync";
 import { sesionElegida, verificarCatalogo } from "@/lib/catalogo";
+import { cerrarSesion, inicioDeRol, rutaPermitida, useSesion } from "@/lib/sesion";
 import ElegirIdentidad from "./catalogo/ElegirIdentidad";
 import { Cargando } from "./ui";
 import s from "./ui.module.css";
@@ -27,6 +29,8 @@ interface EstadoApp {
   refrescar: () => void;
   /** Vuelve a leer usuario, contrato y reporte de hoy (tras reiniciar o cambiar ajustes). */
   recargar: () => Promise<void>;
+  /** Sube lo pendiente, cierra la sesión y vuelve a la pantalla de ingreso. */
+  salir: () => Promise<void>;
 }
 
 const Ctx = createContext<EstadoApp | null>(null);
@@ -108,7 +112,11 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
       if (document.visibilityState === "visible") recargar().then(refrescar).catch(() => {});
     };
     document.addEventListener("visibilitychange", alVolver);
-    const reloj = window.setInterval(() => contarPendientes().then(setPendientes).catch(() => {}), 30_000);
+    // Cada 20 s: con señal, sube lo nuevo (registros, alertas, fotos y áreas); sin señal, solo cuenta.
+    const reloj = window.setInterval(() => {
+      if (navigator.onLine) refrescar();
+      else contarPendientes().then(setPendientes).catch(() => {});
+    }, 20_000);
     return () => {
       vivo = false;
       quitar?.();
@@ -129,13 +137,34 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
     );
   }
   if (!base) return <Cargando texto="Preparando el turno…" />;
-  if (pedirIdentidad) return <ElegirIdentidad alElegir={async () => { await recargar(); refrescar(); }} />;
+  if (pedirIdentidad) {
+    return <ElegirIdentidad alElegir={async () => { await recargar(); refrescar(); router.replace("/"); }} />;
+  }
+
+  const salir = async () => {
+    await sincronizar(); // lo registrado queda en la nube antes de que entre otra persona
+    await cerrarSesion();
+    setPedirIdentidad(true);
+  };
 
   return (
-    <Ctx.Provider value={{ ...base, conectado, pendientes, ultimaSync, errorSync, sincronizando, refrescar, recargar }}>
-      {children}
+    <Ctx.Provider value={{ ...base, conectado, pendientes, ultimaSync, errorSync, sincronizando, refrescar, recargar, salir }}>
+      <SoloSuRol>{children}</SoloSuRol>
     </Ctx.Provider>
   );
+}
+
+/** Si la pantalla no corresponde al rol de la sesión, lleva a su inicio (inspector y jefe «/», administrador «/admin»). */
+function SoloSuRol({ children }: { children: React.ReactNode }) {
+  const sesion = useSesion();
+  const ruta = usePathname() ?? "/";
+  const router = useRouter();
+  const permitida = !sesion || rutaPermitida(sesion.rol, ruta);
+  useEffect(() => {
+    if (sesion && !permitida) router.replace(inicioDeRol(sesion.rol));
+  }, [sesion, permitida, router]);
+  if (!sesion || !permitida) return <Cargando texto="Abriendo…" />;
+  return <>{children}</>;
 }
 
 export function mensaje(e: unknown): string {

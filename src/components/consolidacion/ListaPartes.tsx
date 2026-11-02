@@ -7,7 +7,7 @@ import { IcoCheck } from "@/components/iconos";
 import c from "./consolidacion.module.css";
 
 const ESTADO_PARTE: Record<string, string> = {
-  borrador: "En borrador", generado: "PDF generado, sin entregar", aprobado: "Aprobada, sin entregar", enviado: "Enviada (flujo antiguo)",
+  borrador: "Registrando", generado: "Registrando", aprobado: "Registrando", enviado: "Enviada (flujo antiguo)",
 };
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
@@ -19,7 +19,7 @@ export function ListaPartes({ partes, elegidas, alCambiar, deshabilitado }: {
   deshabilitado?: boolean;
 }) {
   if (!partes.length) {
-    return <p className={s.textoSuave}>Aún no hay partes en la nube para esta fecha y turno.</p>;
+    return <p className={s.textoSuave}>Ningún inspector ha firmado y enviado su parte para esta fecha. Toca «Actualizar lista» en un momento.</p>;
   }
   return (
     <div className={s.lista}>
@@ -33,7 +33,7 @@ export function ListaPartes({ partes, elegidas, alCambiar, deshabilitado }: {
               <span className={c.parteCabecera}>
                 <b>{p.inspector}</b>
                 {p.entregado
-                  ? <Chip tono="verde">Entregada {horaLocal(p.entregadoEn)}</Chip>
+                  ? <Chip tono="verde">Firmó y envió {horaLocal(p.entregadoEn)}</Chip>
                   : <Chip tono="ambar">{ESTADO_PARTE[p.estado] ?? p.estado}</Chip>}
               </span>
               <span className={c.cifras}>
@@ -52,15 +52,12 @@ export function ListaPendientes({ pendientes }: { pendientes: InspectorPendiente
   const n = pendientes.filter((p) => p.motivo === "pendiente").length;
   return (
     <>
-      <Etiqueta derecha={n ? plural(n, "sin entregar", "sin entregar") : undefined}>Inspectores pendientes</Etiqueta>
+      <Etiqueta derecha={n ? plural(n, "pendiente", "pendientes") : undefined}>Inspectores que aún no envían</Etiqueta>
       <div className={s.lista}>
         {pendientes.map((p) => (
           <div key={p.id} className={c.pendiente}>
-            <span>
-              {p.nombre}
-              {p.estadoParte && <small>Su parte está en la nube: {ESTADO_PARTE[p.estadoParte]?.toLowerCase() ?? p.estadoParte}</small>}
-            </span>
-            {p.motivo === "pendiente" ? <Chip tono="ambar">Pendiente</Chip> : <Chip tono="gris">Descanso</Chip>}
+            <span>{p.nombre}</span>
+            {p.motivo === "pendiente" ? <Chip tono="ambar">Aún no envía</Chip> : <Chip tono="gris">Descanso</Chip>}
           </div>
         ))}
       </div>

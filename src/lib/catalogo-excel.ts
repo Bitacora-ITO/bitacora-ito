@@ -88,9 +88,9 @@ const EMPRESAS_BASE: { nombre: string; tipo: TipoEmpresa }[] = [
 ];
 
 const USUARIOS_BASE: { nombre: string; correo: string; rol: RolApp }[] = [
-  { nombre: "Jorge Orellana S.", correo: "jorellana@ejemplo.cl", rol: "inspector" },
-  { nombre: "Alberto Castillo", correo: "acastillo@ejemplo.cl", rol: "inspector" },
-  { nombre: "Arnoldi Díaz", correo: "adiaz@ejemplo.cl", rol: "inspector" },
+  { nombre: "Jorge Orellana S.", correo: "", rol: "inspector" },
+  { nombre: "Alberto Castillo", correo: "", rol: "inspector" },
+  { nombre: "Arnoldi Díaz", correo: "", rol: "inspector" },
   { nombre: "Paula Rojas", correo: "projas@ejemplo.cl", rol: "jefatura" },
   { nombre: "Administrador Bitácora", correo: "admin@ejemplo.cl", rol: "admin" },
 ];
@@ -279,7 +279,7 @@ export function construirPlantillaEnBlanco(): HojaExcel[] {
         fila("Empresas", "Nombre", "Nombre de la empresa (sin repetir).", "Texto"),
         fila("Empresas", "Tipo", "Tipo de empresa.", tipos),
         fila("Usuarios", "Nombre", "Nombre como se imprime en «Elaborado por» (sin repetir).", "Texto"),
-        fila("Usuarios", "Correo", "Correo del usuario (sin repetir).", "Correo válido"),
+        fila("Usuarios", "Correo", "Opcional. Si se escribe, no puede repetirse. Para entrar a la app no se usa.", "Correo válido o vacío"),
         fila("Usuarios", "Rol", "Lo que ve en la app.", roles),
         fila("Usuarios", "Activo", "Si puede usar la app. Quien no aparezca queda inactivo.", "Sí / No"),
       ],
@@ -581,7 +581,8 @@ function leerUsuarios(h: HojaLeida | undefined, errores: Problema[], avisos: Pro
     const rol = ROLES.find((x) => claveNombre(x.etiqueta) === claveNombre(rolTexto) || x.valor === claveNombre(rolTexto))?.valor;
     const activo = leerSiNo(celdas[3]);
     if (!nombre) errores.push({ hoja, fila: n, mensaje: "Falta el nombre del usuario." });
-    if (!correo) errores.push({ hoja, fila: n, mensaje: "Falta el correo." });
+    // Semana 8 v2: el correo es opcional (el único correo que sale es el del jefe de turno al mandante).
+    if (!correo) { /* sin correo: válido */ }
     else if (!CORREO.test(correo)) errores.push({ hoja, fila: n, mensaje: `El correo «${correo}» no es válido.` });
     else if (correos.has(correo)) errores.push({ hoja, fila: n, mensaje: `El correo «${correo}» está repetido: ya aparece en la fila ${correos.get(correo)}.` });
     else correos.set(correo, n);

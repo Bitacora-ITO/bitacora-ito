@@ -107,18 +107,35 @@ La app **no** usa la ubicación en segundo plano ni graba audio cuando no estás
 
 ## 5. Primer uso
 
-1. Abre **Bitácora ITO**. La maqueta ya viene con la sesión iniciada y con datos de ejemplo del contrato.
-2. En la pantalla de inicio verás el turno de hoy. Toca **Agregar área** para elegir el área de la lista y la empresa que trabaja ahí.
-3. Dentro del área, registra la actividad: dicta o escribe, agrega fotos y guarda.
-4. Al terminar el turno, revisa el **borrador**, abre la **vista previa del PDF** y toca **Aprobar y enviar**.
+1. Abre **Bitácora ITO**. Elige tu nombre en la lista **Usuario**, escribe la **Clave** y toca **Entrar**. En la maqueta, la clave de todos es **1234**.
+2. Tu rol define lo que ves:
+   - **Inspector (ITO):** el turno día de hoy con sus áreas.
+   - **Jefe de turno:** la consolidación del día.
+   - **Administrador:** el catálogo del contrato.
+3. Para cambiar de persona: ícono de ajustes (arriba a la derecha) → **Cerrar sesión**. Lo registrado se sube antes de cerrar.
 
-[CAPTURA: pantalla de inicio con el turno de hoy]
+### Inspector (ITO)
 
-[CAPTURA: vista previa del PDF con el botón «Aprobar y enviar»]
+1. Toca **Agregar área** para elegir el área de la lista y la empresa que trabaja ahí.
+2. Dentro del área, registra la actividad: dicta o escribe, agrega fotos y guarda. Lo registrado se sube solo a la nube, pero el jefe de turno **no lo ve** hasta que tú lo firmes.
+3. Al terminar, toca **Revisar reporte del turno** y luego **Cerrar y enviar al jefe de turno**.
+4. Marca la declaración, escribe tu clave como **firma** y toca **Firmar y enviar al jefe de turno**.
 
-**Sin señal en la obra:** puedes trabajar igual. Todo queda guardado en el teléfono. Si apruebas el reporte sin señal, queda **en cola** y se envía solo cuando vuelve la conexión (con la app abierta). La marca de **pendiente de sincronizar** desaparece cuando los datos llegan a la nube.
+### Jefe de turno
 
-**Guardar el PDF en el teléfono:** desde la vista previa, la opción de guardar deja el archivo en **Documentos > Bitacora ITO** (app Archivos / Mis archivos).
+1. Toca **Consolidar el día**. Verás las partes firmadas por los inspectores y quiénes aún no envían.
+2. Toca **Consolidar**, revisa el clima y abre la **vista previa del PDF**. El PDF y el informe final son solo del jefe de turno.
+3. Toca **Aprobar y enviar al mandante**. Ese es el único correo que envía la app.
+
+[CAPTURA: ingreso con usuario y clave]
+
+[CAPTURA: «Firmar y enviar al jefe de turno»]
+
+[CAPTURA: consolidación del jefe de turno]
+
+**Sin señal en la obra:** puedes trabajar igual. Todo queda guardado en el teléfono. Si firmas tu parte sin señal, queda **en cola** y se sube sola cuando vuelve la conexión (con la app abierta). La marca de **pendiente de sincronizar** desaparece cuando los datos llegan a la nube.
+
+**Guardar el PDF en el teléfono (jefe de turno):** desde la vista previa del consolidado, **Descargar paquete (.zip)** deja el PDF, un resumen y las fotos.
 
 ---
 

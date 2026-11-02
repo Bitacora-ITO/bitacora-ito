@@ -1,10 +1,10 @@
 "use client";
 // P1 · Turno y áreas (HU-01): fecha, turno, clima, áreas del turno con su estado y acceso al reporte.
-// Semana 8, navegación por rol: el inspector ve P1; el jefe de turno («jefatura») ve la consolidación
-// del turno y, si también inspecciona, entra a sus registros con «Mis registros del turno».
+// Semana 8 v2, navegación por rol: el inspector ve P1 y el jefe de turno («jefatura») solo la consolidación
+// del día. El administrador no pasa por aquí: Proveedor lo lleva a /admin.
 import { useEffect, useState } from "react";
 import { useSesion } from "@/lib/sesion";
-import InicioJefe, { BarraJefe, CLAVE_MIS_REGISTROS } from "@/components/consolidacion/InicioJefe";
+import InicioJefe from "@/components/consolidacion/InicioJefe";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -27,18 +27,10 @@ const OPC_CLIMA = (Object.keys(CLIMA) as Clima[]).map((valor) => ({ valor, etiqu
 
 export default function Inicio() {
   const sesion = useSesion();
-  const [misRegistros, setMisRegistros] = useState<boolean | null>(null);
-  useEffect(() => {
-    try { setMisRegistros(sessionStorage.getItem(CLAVE_MIS_REGISTROS) === "1"); } catch { setMisRegistros(false); }
-  }, []);
-  const verMisRegistros = (si: boolean) => {
-    try { if (si) sessionStorage.setItem(CLAVE_MIS_REGISTROS, "1"); else sessionStorage.removeItem(CLAVE_MIS_REGISTROS); } catch { /* sin sessionStorage */ }
-    setMisRegistros(si);
-  };
-  if (!sesion || misRegistros === null) return <Cargando texto="Cargando el turno…" />;
-  if (sesion.rol !== "jefatura") return <Turno />;
-  if (!misRegistros) return <InicioJefe alVerMisRegistros={() => verMisRegistros(true)} />;
-  return <><BarraJefe alVolver={() => verMisRegistros(false)} /><Turno /></>;
+  if (!sesion) return <Cargando texto="Cargando el turno…" />;
+  if (sesion.rol === "jefatura") return <InicioJefe />;
+  if (sesion.rol === "admin") return <Cargando texto="Abriendo el catálogo…" />;
+  return <Turno />;
 }
 
 function Turno() {

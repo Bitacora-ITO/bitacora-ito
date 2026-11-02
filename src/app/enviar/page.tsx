@@ -1,7 +1,8 @@
 "use client";
-// P5 · Entregar al jefe de turno (semana 8; antes «Enviar al mandante», HU-07).
+// P5 · Cerrar mi parte y enviarla al jefe de turno (semana 8; antes «Enviar al mandante», HU-07).
 // Pedido del profesor guía: cada inspector entrega su parte y el jefe de turno envía UN reporte consolidado.
-// Estados: con datos (aprobado), entregando, entregado (subido a la nube, con resumen) y en cola sin red.
+// Semana 8 v2 (Marcela): el inspector no genera PDF; declara y firma con su clave, y solo entonces el jefe la ve.
+// Estados: por firmar, enviando, firmada (subida a la nube, con resumen) y en cola sin red.
 // Los reportes antiguos que ya se habían enviado al mandante siguen mostrando su pantalla de «Enviado».
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +11,7 @@ import { numeroCorto, resumenReporte, ultimoEnvio } from "@/lib/repositorio";
 import { entregarAlJefe, reintentarEntrega } from "@/lib/envio";
 import { pendientesDeReporte } from "@/lib/sync";
 import { supabaseConfigurado } from "@/lib/supabase";
-import { useSesion } from "@/lib/sesion";
+import { firmaValida, useSesion } from "@/lib/sesion";
 import { guardarPdf } from "@/lib/nativo";
 import { armarDatosInforme } from "@/lib/informe/armar";
 import { nombreArchivoPdf } from "@/lib/informe/pdf";
@@ -31,6 +32,8 @@ export default function Enviar() {
   const [errorLocal, setErrorLocal] = useState<string>();
   const [archivo, setArchivo] = useState<{ nombre: string; fotos: number }>();
   const [errorPdf, setErrorPdf] = useState<string>();
+  const [declaro, setDeclaro] = useState(false);
+  const [clave, setClave] = useState("");
 
   const { datos } = useConsulta(async () => {
     const reporte = await db.reportes.get(reporteHoyId);
@@ -57,13 +60,18 @@ export default function Enviar() {
 
   const elaborado = nombreCorto(contexto.usuario.nombre);
   const soyJefe = sesion?.rol === "jefatura";
-  const titulo = soyJefe ? "Entregar mi parte" : "Entregar al jefe de turno";
+  const titulo = "Mi parte del turno";
   const receptor = jefes.length ? jefes.map((j) => nombreCorto(j.nombre)).join(" / ") : "Jefe de turno";
+
+  async function firmarYEnviar() {
+    if (!firmaValida(clave)) { setErrorLocal("La clave no es correcta: tu parte no se firmó."); return; }
+    await entregar();
+  }
 
   async function entregar() {
     setEntregando(true); setErrorLocal(undefined);
     try {
-      const r = reporte!.estado === "entregado" ? await reintentarEntrega(reporteHoyId) : await entregarAlJefe(reporteHoyId);
+      const r = reporte!.estado === "entregado" ? await reintentarEntrega(reporteHoyId) : await entregarAlJefe(reporteHoyId, contexto.usuario.id);
       if (r.estado === "fallido") setErrorLocal(r.error);
       refrescar();
     } catch (err) {
@@ -80,13 +88,6 @@ export default function Enviar() {
       await guardarPdf(pdf.pdf, archivo?.nombre ?? `Reporte_Diario_${numeroCorto(reporte!.correlativo)}.pdf`);
     } catch (err) { setErrorPdf(mensaje(err)); }
   }
-
-  const tarjetaPdf = (
-    <button className={e.pdf} onClick={() => router.push("/vista-previa")} aria-label="Abrir la vista previa del PDF">
-      <span className={e.iconoPdf}>PDF</span>
-      <b>{archivo ? `${archivo.nombre} · ${archivo.fotos} ${archivo.fotos === 1 ? "foto" : "fotos"}` : "Parte del turno"}</b>
-    </button>
-  );
 
   const cifras = (
     <div className={`${l.tabla} ${l.tablaSinLineas}`} style={{ border: 0, padding: "10px 16px" }}>
@@ -137,18 +138,14 @@ export default function Enviar() {
     const ocupado = entregando || sincronizando;
     if (subido) {
       return (
-        <Pantalla pie={
-          <>
-            {errorPdf && <MensajeError>{errorPdf}</MensajeError>}
-            <button className={s.botonSecundario} onClick={verPdf}>Ver PDF de mi parte</button>
-            <button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>
-          </>
-        }>
+        <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>}>
           <Encabezado volver={{ texto: "Turno", href: "/" }} titulo={titulo} />
           <div className={e.exito}>
             <span className={e.check}><IcoCheck size={52} /></span>
-            <h2 className={s.tituloEstado}>Parte entregada</h2>
-            <p className={s.textoSuave}>Entregada {hora(reporte.entregadoEn)} · disponible para el jefe de turno</p>
+            <h2 className={s.tituloEstado}>Parte firmada y enviada</h2>
+            <p className={s.textoSuave}>
+              Firmada por {nombreCorto(aprobador?.nombre ?? contexto.usuario.nombre)} a las {hora(reporte.entregadoEn)} · ya la ve el jefe de turno
+            </p>
           </div>
           {cifras}
           <p className={s.textoSuave} style={{ textAlign: "center", marginTop: 16 }}>
@@ -177,7 +174,6 @@ export default function Enviar() {
             {!ocupado && errorSync && <><br /><small>{errorSync}</small></>}
           </Aviso>
         )}
-        {tarjetaPdf}
         {cifras}
         {errorLocal && <MensajeError>{errorLocal}</MensajeError>}
         <p className={s.textoSuave}>Puedes cerrar la app: la entrega queda en cola.</p>
@@ -190,41 +186,37 @@ export default function Enviar() {
     );
   }
 
-  // Sin aprobar: la aprobación solo se da desde la vista previa (regla 9).
-  if (reporte.estado !== "aprobado") {
-    return (
-      <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/vista-previa")}>Ir a la vista previa</button>}>
-        <Encabezado volver={{ texto: "Borrador", href: "/borrador" }} titulo={titulo} />
-        <Aviso tono="ambar" icono={<IcoAlerta />} titulo="Tu parte aún no está aprobada">
-          Revisa el PDF en la vista previa y toca «Aprobar y entregar».
-        </Aviso>
-      </Pantalla>
-    );
-  }
-
-  // Con datos y entregando.
+  // Cerrar y firmar (semana 8 v2): el inspector declara que la información es correcta y firma con su clave.
+  // Recién ahí el jefe de turno ve su parte. El inspector no genera PDF: el informe final es del jefe.
+  const puedeFirmar = declaro && clave.length > 0 && !entregando;
   return (
     <Pantalla pie={
-      <button className={s.botonPrimario} onClick={entregar} disabled={entregando}>
-        {entregando ? <><Giro chico /> Entregando…</> : errorLocal ? "Reintentar entrega" : titulo}
+      <button className={s.botonPrimario} onClick={firmarYEnviar} disabled={!puedeFirmar}>
+        {entregando ? <><Giro chico /> Enviando…</> : "Firmar y enviar al jefe de turno"}
       </button>
     }>
-      <Encabezado volver={{ texto: "Vista previa", href: "/vista-previa" }} titulo={titulo} />
+      <Encabezado volver={{ texto: "Mi parte", href: "/borrador" }} titulo="Cerrar mi parte" />
       {errorLocal && !entregando && (
-        <Aviso tono="rojo" icono={<IcoAlerta />} titulo="No se pudo entregar tu parte">
+        <Aviso tono="rojo" icono={<IcoAlerta />} titulo="No se pudo enviar tu parte">
           {errorLocal}
         </Aviso>
       )}
       <div className={entregando ? s.atenuado : undefined} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {tarjetaPdf}
-        <Etiqueta>Elaborado por</Etiqueta>
-        <div className={s.campo} style={{ fontWeight: 400 }}>{elaborado}</div>
-        <Etiqueta derecha="Arma el reporte consolidado">Se entrega a</Etiqueta>
-        <div className={s.campo} style={{ fontWeight: 400 }}>{receptor}</div>
+        {cifras}
+        <label className={s.tarjeta} style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
+          <input type="checkbox" checked={declaro} onChange={(ev) => setDeclaro(ev.target.checked)} disabled={entregando}
+            style={{ width: 22, height: 22, marginTop: 2, flex: "none" }} />
+          <span>
+            Yo, <b>{contexto.usuario.nombre}</b>, declaro que revisé mi parte del turno y que la información
+            registrada es correcta. La envío al jefe de turno para el reporte consolidado.
+          </span>
+        </label>
+        <Etiqueta htmlFor="firma">Firma con tu clave</Etiqueta>
+        <input id="firma" className={s.entrada} type="password" inputMode="numeric" autoComplete="current-password"
+          value={clave} onChange={(ev) => setClave(ev.target.value)} disabled={entregando} />
         <p className={s.textoSuave}>
-          Aprobado por {nombreCorto(aprobador?.nombre ?? contexto.usuario.nombre)}{reporte.horaAprobacion ? ` a las ${hora(reporte.horaAprobacion)}` : ""}.
-          Al entregar, tu parte (registros, alertas, fotos y PDF) sube a la nube y el jefe de turno la incluye
-          en el reporte único que se envía al mandante.
+          Al firmar, tu parte se cierra y sube a la nube. El jefe de turno la junta con las de los demás inspectores,
+          genera el PDF y envía el informe final al mandante.
         </p>
       </div>
     </Pantalla>

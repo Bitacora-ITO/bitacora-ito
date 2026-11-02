@@ -1,6 +1,8 @@
 "use client";
 // Consolidación del turno (jefe de turno, semana 8). Pedido del profesor guía: varios inspectores por
 // turno, cada uno entrega su parte y el jefe de turno envía UN solo reporte consolidado al mandante.
+// Semana 8 v2 (pedido de Marcela): solo turno día; el jefe ve solo las partes que los inspectores firmaron y
+// enviaron, y el PDF / informe final es solo suyo.
 // Pasos: lista de partes (Supabase) → consolidar (descarga y fusión, lib/consolidar.ts) → revisión y clima
 // → vista previa del PDF → «Aprobar y enviar al mandante» (misma API /api/enviar) → enviado.
 // «Descargar paquete (.zip)» deja el PDF, un resumen.md y las fotos con nombres legibles.
@@ -10,6 +12,7 @@ import { hoyLocal } from "@/lib/db";
 import { CLIMA, numeroCorto, turnoActual } from "@/lib/repositorio";
 import { obtenerSupabase } from "@/lib/supabase";
 import { enviarCuerpoAlMandante } from "@/lib/envio";
+import { sincronizar } from "@/lib/sync";
 import { aDatosInforme, estructurar, masRepetido } from "@/lib/consolidar";
 import {
   aprobarYEnviar, descargarPartes, fuenteParaPantalla, leerEstadoTurno,
@@ -31,7 +34,6 @@ import c from "@/components/consolidacion/consolidacion.module.css";
 import { consolidadoLocal, guardarGenerado, idParaConsolidar, marcarAprobado, marcarEnviado } from "./local";
 
 const OPC_CLIMA = (Object.keys(CLIMA) as Clima[]).map((valor) => ({ valor, etiqueta: CLIMA[valor] }));
-const OPC_TURNO: { valor: Turno; etiqueta: string }[] = [{ valor: "dia", etiqueta: "Día" }, { valor: "noche", etiqueta: "Noche" }];
 
 type Paso =
   | { tipo: "lista" }
@@ -49,7 +51,7 @@ export default function Jefe() {
   const { contexto, conectado } = useApp();
   const contratoId = contexto.contrato.id;
   const [fecha, setFecha] = useState(hoyLocal());
-  const [turno, setTurno] = useState<Turno>(turnoActual());
+  const turno: Turno = turnoActual(); // semana 8 v2: solo turno día
   const [carga, setCarga] = useState<Carga>({ tipo: "cargando" });
   const [elegidas, setElegidas] = useState<Set<string>>(new Set());
   const [paso, setPaso] = useState<Paso>({ tipo: "lista" });
@@ -69,9 +71,12 @@ export default function Jefe() {
     if (!fuente) return;
     setCarga({ tipo: "cargando" });
     try {
+      // Si en este mismo teléfono un inspector dejó registros sin subir, se suben antes de leer la nube.
+      await sincronizar();
       const estado = await leerEstadoTurno(fuente, contratoId, fecha, turno);
       setCarga({ tipo: "listo", estado });
-      setElegidas(new Set(estado.partes.filter((p) => p.entregado).map((p) => p.reporteId)));
+      // Semana 8 v2: la lista trae solo partes firmadas; todas quedan marcadas para consolidar.
+      setElegidas(new Set(estado.partes.map((p) => p.reporteId)));
     } catch (err) {
       setCarga({ tipo: "error", mensaje: mensaje(err) });
     }
@@ -317,7 +322,7 @@ export default function Jefe() {
           <button className={s.botonPrimario} onClick={() => setVerEnviado(true)}>Ver el PDF enviado</button>
         ) : (
           <>
-            {sinEntregar > 0 && <p className={s.notaPie} style={{ fontSize: 14 }}>Incluyes {sinEntregar} {sinEntregar === 1 ? "parte que aún no se entrega" : "partes que aún no se entregan"}</p>}
+            {sinEntregar > 0 && <p className={s.notaPie} style={{ fontSize: 14 }}>{sinEntregar === 1 ? "1 inspector sigue registrando" : `${sinEntregar} inspectores siguen registrando`}: se incluye lo que lleva subido</p>}
             <button className={s.botonPrimario} onClick={consolidar} disabled={!fuente || !estado || nElegidas === 0 || descargando || !conectado}>
               {descargando ? <><Giro chico /> {paso.texto}</> : nElegidas ? `Consolidar ${nElegidas} ${nElegidas === 1 ? "parte" : "partes"}` : "Consolidar"}
             </button>
@@ -329,13 +334,9 @@ export default function Jefe() {
 
       <div className={c.selector}>
         <div>
-          <Etiqueta htmlFor="fecha-turno">Fecha</Etiqueta>
+          <Etiqueta htmlFor="fecha-turno">Fecha · turno día</Etiqueta>
           <input id="fecha-turno" type="date" className={c.fecha} value={fecha} max={hoyLocal()}
             onChange={(ev) => ev.target.value && setFecha(ev.target.value)} disabled={descargando} />
-        </div>
-        <div>
-          <Etiqueta>Turno</Etiqueta>
-          <Segmentado etiqueta="Turno" opciones={OPC_TURNO} valor={turno} onChange={setTurno} deshabilitado={descargando} />
         </div>
       </div>
 
@@ -367,7 +368,7 @@ export default function Jefe() {
         </>
       ) : estado && (
         <>
-          <Etiqueta derecha={`${estado.partes.filter((p) => p.entregado).length} entregadas`}>Partes del turno</Etiqueta>
+          <Etiqueta derecha={`${estado.partes.length} ${estado.partes.length === 1 ? "firmada" : "firmadas"}`}>Partes enviadas por los inspectores</Etiqueta>
           <ListaPartes partes={estado.partes} elegidas={elegidas} alCambiar={alternar} deshabilitado={descargando || yaEnviado} />
           <ListaPendientes pendientes={estado.pendientes} />
           <button className={s.enlace} style={{ alignSelf: "flex-start" }} onClick={() => void cargar()} disabled={descargando}>Actualizar lista</button>

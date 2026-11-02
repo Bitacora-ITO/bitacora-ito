@@ -26,7 +26,7 @@ interface Carga {
 
 export default function Admin() {
   const sesion = useSesion();
-  const { recargar, conectado } = useApp();
+  const { recargar, conectado, salir } = useApp();
   const archivoRef = useRef<HTMLInputElement>(null);
   const [recarga, setRecarga] = useState(0);
   const [carga, setCarga] = useState<Carga>();
@@ -42,7 +42,7 @@ export default function Admin() {
       <Pantalla>
         <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Catálogo" />
         <Aviso tono="ambar" icono={<IcoAlerta />} titulo="Solo para administradores">
-          Para cargar el catálogo, elige un usuario con rol Administrador en Ajustes → «¿Quién usa este teléfono?».
+          Para cargar el catálogo, cierra la sesión y entra con un usuario con rol Administrador.
         </Aviso>
         <Link href="/" className={s.botonSecundario}>Volver al turno</Link>
       </Pantalla>
@@ -122,7 +122,9 @@ export default function Admin() {
         </>
       ) : undefined}
     >
-      <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Catálogo del contrato" />
+      <Encabezado titulo="Catálogo del contrato" derecha={
+        <button className={s.enlace} onClick={() => void salir()}>Cerrar sesión</button>
+      } />
 
       {errorActual && <MensajeError>{errorActual.message}</MensajeError>}
       {!actual ? <p className={s.textoSuave}><Giro chico /> Leyendo el catálogo…</p> : (

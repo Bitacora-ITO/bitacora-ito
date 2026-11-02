@@ -52,13 +52,18 @@ export function numeroCorto(correlativo: string): string {
 
 // ───────────────────────── Reporte del día ─────────────────────────
 
-export async function buscarReporte(contratoId: string, fecha: string, turno: Turno): Promise<Reporte | undefined> {
-  return db.reportes.where("[contratoId+fecha+turno]").equals([contratoId, fecha, turno]).first();
+/**
+ * Semana 8 v2: cada inspector tiene su propio reporte del día, aunque compartan teléfono.
+ * Sin `usuarioId` devuelve el primero del día (para pantallas que no dependen de quién lo hizo).
+ */
+export async function buscarReporte(contratoId: string, fecha: string, turno: Turno, usuarioId?: string): Promise<Reporte | undefined> {
+  return db.reportes.where("[contratoId+fecha+turno]").equals([contratoId, fecha, turno])
+    .filter((r) => !usuarioId || r.elaboradoPor === usuarioId).first();
 }
 
 export async function reporteDeHoy(): Promise<Reporte | undefined> {
-  const { contrato } = await obtenerContexto();
-  return buscarReporte(contrato.id, hoyLocal(), turnoActual());
+  const { contrato, usuario } = await obtenerContexto();
+  return buscarReporte(contrato.id, hoyLocal(), turnoActual(), usuario.id);
 }
 
 let creando: Promise<Reporte> | null = null;
@@ -79,11 +84,12 @@ async function crearReporteHoy(): Promise<Reporte> {
   const fecha = hoyLocal();
   const turno = turnoActual();
   return db.transaction("rw", [db.reportes, db.contratos, db.areasTurno], async () => {
-    const existente = await buscarReporte(contrato.id, fecha, turno);
+    const existente = await buscarReporte(contrato.id, fecha, turno, usuario.id);
     if (existente) return existente;
     const c = (await db.contratos.get(contrato.id))!;
     const n = c.ultimoCorrelativo + 1;
-    const anteriores = await db.reportes.where("contratoId").equals(c.id).filter((r) => r.fecha < fecha).toArray();
+    const anteriores = await db.reportes.where("contratoId").equals(c.id)
+      .filter((r) => r.fecha < fecha && r.elaboradoPor === usuario.id).toArray();
     anteriores.sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
     const previo = anteriores[0];
     const reporte: Reporte = {
@@ -476,8 +482,8 @@ export interface DetalleDia {
 }
 
 export async function detalleDelDia(fecha: string): Promise<DetalleDia> {
-  const { contrato } = await obtenerContexto();
-  const reporte = await buscarReporte(contrato.id, fecha, turnoActual());
+  const { contrato, usuario } = await obtenerContexto();
+  const reporte = await buscarReporte(contrato.id, fecha, turnoActual(), usuario.id);
   if (!reporte) return { areas: [], alertas: [], fotos: [] };
   const [areas, alertas, envios] = await Promise.all([
     areasDelReporte(reporte.id),

@@ -38,7 +38,7 @@ AYUDA = {  # (hoja, encabezado) -> (título, mensaje) que Excel muestra al selec
     ("Empresas", "Tipo"): ("Elija de la lista", "Contratista, Laboratorio, Topografía, Obras civiles u Otro."),
     ("Usuarios", "Rol"): ("Elija de la lista", "Inspector, Jefe de turno o Administrador."),
     ("Usuarios", "Activo"): ("Sí o No", "«No» = el usuario deja de aparecer en los teléfonos."),
-    ("Usuarios", "Correo"): ("Correo electrónico", "Debe incluir @."),
+    ("Usuarios", "Correo"): ("Correo electrónico (opcional)", "Puede quedar vacío. Si se escribe, debe incluir @."),
 }
 
 origen = openpyxl.load_workbook(ORIGEN)
@@ -128,7 +128,7 @@ def hoja_instrucciones(wb, en_blanco: bool):
         ("Empresas · Nombre", "Empresa que ejecuta los trabajos", "Sin repetir"),
         ("Empresas · Tipo", "Clase de empresa", " / ".join(TIPOS)),
         ("Usuarios · Nombre", "Persona que usa la app", "Sin repetir; así aparece en «Elaborado por»"),
-        ("Usuarios · Correo", "Correo de la persona", "Debe incluir @"),
+        ("Usuarios · Correo", "Correo de la persona (opcional)", "Vacío, o con @"),
         ("Usuarios · Rol", "Qué puede hacer en la app", " / ".join(ROLES)),
         ("Usuarios · Activo", "Si aparece en los teléfonos", "Sí / No"),
     ]

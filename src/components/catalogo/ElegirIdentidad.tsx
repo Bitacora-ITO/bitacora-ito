@@ -1,72 +1,63 @@
 "use client";
-// «¿Quién usa este teléfono?»: lista de usuarios activos del contrato con su rol.
-// Se usa en Ajustes y, al primer uso, como pantalla completa antes de entrar a la app.
+// Inicio de sesión de la maqueta (semana 8 v2): se elige el usuario de una lista desplegable y se escribe la
+// clave (CLAVE_MAQUETA, la misma para todos). El rol que trae el usuario en el catálogo define qué pantallas ve.
 import { useState } from "react";
 import { usuariosDelContrato } from "@/lib/catalogo";
 import { etiquetaRol } from "@/lib/catalogo-excel";
-import { fijarSesion } from "@/lib/sesion";
-import type { RolApp } from "@/lib/types";
+import { CLAVE_MAQUETA, iniciarSesion } from "@/lib/sesion";
 import { useConsulta } from "@/hooks/useConsulta";
-import { Chip, Giro, MensajeError, estilos as s, type Tono } from "../ui";
-import { IcoCheck } from "../iconos";
+import { Etiqueta, Giro, MensajeError, estilos as s } from "../ui";
 
-const TONO: Record<RolApp, Tono> = { inspector: "teal", jefatura: "ambar", admin: "gris" };
-
-export function ListaIdentidades({ actualId, alElegir }: { actualId?: string; alElegir: (id: string) => Promise<void> }) {
+export default function ElegirIdentidad({ alElegir }: { alElegir: (id: string) => Promise<void> }) {
   const { datos: usuarios, error } = useConsulta(() => usuariosDelContrato(), []);
-  const [eligiendo, setEligiendo] = useState<string>();
+  const [usuarioId, setUsuarioId] = useState("");
+  const [clave, setClave] = useState("");
+  const [entrando, setEntrando] = useState(false);
   const [fallo, setFallo] = useState<string>();
 
-  async function elegir(id: string) {
-    setEligiendo(id); setFallo(undefined);
+  async function entrar(ev: React.FormEvent) {
+    ev.preventDefault();
+    setEntrando(true); setFallo(undefined);
     try {
-      await fijarSesion(id);
-      await alElegir(id);
+      await iniciarSesion(usuarioId, clave);
+      await alElegir(usuarioId);
     } catch (e) {
       setFallo(e instanceof Error ? e.message : String(e));
-    } finally {
-      setEligiendo(undefined);
+      setEntrando(false);
     }
   }
 
-  if (error) return <MensajeError>{error.message}</MensajeError>;
-  if (!usuarios) return <p className={s.textoSuave}><Giro chico /> Cargando usuarios…</p>;
-  return (
-    <div className={s.lista} role="radiogroup" aria-label="¿Quién usa este teléfono?">
-      {usuarios.map((u) => {
-        const actual = u.id === actualId;
-        return (
-          <button key={u.id} type="button" role="radio" aria-checked={actual} className={s.fila}
-            style={{ "--barra": actual ? "var(--teal)" : "var(--linea)", minHeight: 56 } as React.CSSProperties}
-            onClick={() => elegir(u.id)} disabled={!!eligiendo}>
-            <span className={s.filaTexto}>
-              <span className={s.filaTitulo}>{u.nombre}</span>
-              <span style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                <Chip tono={TONO[u.rol]}>{etiquetaRol(u.rol)}</Chip>
-                <span className={s.textoSuave} style={{ fontSize: 13 }}>{u.correo}</span>
-              </span>
-            </span>
-            {eligiendo === u.id ? <Giro chico /> : actual ? <IcoCheck className={s.filaFlecha} /> : null}
-          </button>
-        );
-      })}
-      {fallo && <MensajeError>{fallo}</MensajeError>}
-    </div>
-  );
-}
-
-/** Pantalla del primer uso: nadie ha elegido aún quién usa este teléfono. */
-export default function ElegirIdentidad({ alElegir }: { alElegir: (id: string) => Promise<void> }) {
   return (
     <main className={s.pantalla}>
-      <div className={s.cuerpo}>
-        <h1 className={s.h1}>¿Quién usa este teléfono?</h1>
+      <form className={s.cuerpo} onSubmit={entrar}>
+        <h1 className={s.h1}>Bitácora ITO</h1>
         <p className={s.textoSuave}>
-          Elige tu nombre. Tu rol define lo que ves: el inspector registra su parte, el jefe de turno la
-          consolida y el administrador carga el catálogo. Se puede cambiar después en Ajustes.
+          Elige tu nombre y escribe tu clave. Cada rol ve solo lo suyo: el inspector registra su parte, el jefe de
+          turno consolida el día y envía el correo al mandante, y el administrador carga el catálogo.
         </p>
-        <ListaIdentidades alElegir={alElegir} />
-      </div>
+
+        <Etiqueta htmlFor="usuario">Usuario</Etiqueta>
+        {error ? <MensajeError>{error.message}</MensajeError> : !usuarios ? (
+          <p className={s.textoSuave}><Giro chico /> Cargando usuarios…</p>
+        ) : (
+          <select id="usuario" className={s.entrada} value={usuarioId} onChange={(e) => setUsuarioId(e.target.value)} disabled={entrando}>
+            <option value="">Elige tu nombre…</option>
+            {usuarios.map((u) => <option key={u.id} value={u.id}>{u.nombre} · {etiquetaRol(u.rol)}</option>)}
+          </select>
+        )}
+
+        <Etiqueta htmlFor="clave">Clave</Etiqueta>
+        <input id="clave" className={s.entrada} type="password" inputMode="numeric" autoComplete="current-password"
+          value={clave} onChange={(e) => setClave(e.target.value)} disabled={entrando} />
+
+        {fallo && <MensajeError>{fallo}</MensajeError>}
+        <button type="submit" className={s.botonPrimario} disabled={entrando || !usuarioId || !clave}>
+          {entrando ? <><Giro chico /> Entrando…</> : "Entrar"}
+        </button>
+        <p className={s.textoSuave} style={{ fontSize: 13, textAlign: "center" }}>
+          Maqueta académica: la clave de todos los usuarios es {CLAVE_MAQUETA}.
+        </p>
+      </form>
     </main>
   );
 }

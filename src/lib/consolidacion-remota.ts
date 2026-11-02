@@ -250,8 +250,9 @@ export async function leerEstadoTurno(f: FuenteConsolidacion, contratoId: string
   ]);
   if (!contrato) throw new Error("El contrato de este teléfono no está en la nube. Sincroniza desde un teléfono con el contrato cargado.");
   const nombre = new Map(usuarios.map((u) => [u.id, u.nombre]));
-  // Partes con contenido: entregadas, o con PDF generado/aprobado (se muestran para que el jefe sepa en qué van).
-  const visibles = reportes.filter((r) => r.entregado_en || PARTE_VISIBLE.has(r.estado));
+  // Semana 8 v2 (pedido de Marcela): el jefe de turno ve SOLO las partes que el inspector cerró y firmó
+  // («Firmar y enviar al jefe de turno», `entregado_en` lleno). De los demás solo sabe que aún no envían.
+  const visibles = reportes.filter((r) => r.entregado_en);
   const det = await f.leerDetalle(visibles.map((r) => r.id));
   const cuenta = <T extends { reporte_id: string | null }>(xs: T[], id: string) => xs.filter((x) => x.reporte_id === id).length;
   const partes: ResumenParte[] = visibles.map((r) => ({
@@ -268,7 +269,7 @@ export async function leerEstadoTurno(f: FuenteConsolidacion, contratoId: string
   }));
   partes.sort((a, b) => Number(b.entregado) - Number(a.entregado) || (a.entregadoEn ?? "").localeCompare(b.entregadoEn ?? "") || a.inspector.localeCompare(b.inspector, "es"));
 
-  const entregaron = new Set(partes.filter((p) => p.entregado).map((p) => p.inspectorId));
+  const entregaron = new Set(partes.map((p) => p.inspectorId));
   const pendientes: InspectorPendiente[] = usuarios
     .filter((u) => u.rol === "inspector" && u.activo !== false && !entregaron.has(u.id))
     .map((u) => {

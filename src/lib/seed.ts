@@ -349,7 +349,8 @@ export async function sembrar(destinatario?: string): Promise<void> {
     }
   }
 
-  sembrarHoy(lote, hoy, contrato, fotos, ahora);
+  // Semana 8 v2: ya no se siembra un turno de hoy. Cada inspector parte su día (asegurarReporteHoy) con las
+  // áreas de su último turno, y el jefe ve en la nube solo lo que de verdad se registró hoy.
 
   await db.transaction("rw", db.tables, async () => {
     await db.usuarios.bulkAdd(usuarios);
@@ -370,55 +371,6 @@ export async function sembrar(destinatario?: string): Promise<void> {
       { clave: CLAVES.semilla, valor: SEMILLA_VERSION },
     ]);
   });
-}
-
-/** Reporte de hoy como 01a: 3 áreas con registro, 1 sin actividad, Peralte Muro Sotelo pendiente y 2 alertas. */
-function sembrarHoy(lote: Lote, hoy: string, contrato: Contrato, fotos: Blob[], ahora: string) {
-  const reporte: Reporte = {
-    id: nuevoId(), contratoId: CONTRATO_ID, fecha: hoy, turno: "dia",
-    correlativo: formatoCorrelativo(contrato.prefijoCorrelativo, CORRELATIVO_HOY),
-    elaboradoPor: USUARIO_ID, climaTurno: "despejado", climaProyeccion: "despejado", estado: "borrador", sincronizadoEn: ahora,
-  };
-  lote.reportes.push(reporte);
-  const filas: { area: string; empresa: string; hora?: string; texto?: string; fotos?: number[] }[] = [
-    { area: A(1), empresa: E.geoinyecta, hora: "08:40", fotos: [2, 0],
-      texto: "Se realiza perforación de pozos de consolidación de las corridas E (2-6-7) y D (1-2-3-4-5-10-11-12) con 11 pozos; total de metros perforados 88 m." },
-    { area: A(4), empresa: E.tecnasic },
-    { area: A(6), empresa: E.tecnasic, hora: "11:15", fotos: [3],
-      texto: "Verticalización de estructuras entre ejes 8-9 de la torre.\nMontaje de soporte y tablero 3531-TDF-801.\nMontaje CAG de 1\" en TDF-801." },
-    { area: A(8), empresa: E.oocc, hora: "14:02", fotos: [1, 4],
-      texto: "Excavación y emplantillado para fundación de machones M1a, M1b y M1c de cañería de 6\".\nFabricación de camellones en recorrido de cañería de 6\"." },
-    { area: A(14), empresa: E.idiem, hora: "15:30" },
-  ];
-  const ats: Record<string, string> = {};
-  filas.forEach((f, i) => {
-    const at: AreaTurno = { id: nuevoId(), reporteId: reporte.id, areaId: f.area, empresaId: f.empresa, orden: i + 1, agregadaEn: instante(hoy, "07:45") };
-    ats[f.area] = at.id;
-    lote.areasTurno.push(at);
-    if (!f.hora) return; // Peralte Muro Sotelo queda pendiente
-    const sinActividad = !f.texto;
-    const reg: Registro = {
-      id: nuevoId(), reporteId: reporte.id, areaTurnoId: at.id, sinActividad, descripcion: f.texto ?? "",
-      origenDescripcion: "dictado", latitud: GPS.latitud, longitud: GPS.longitud, registradoEn: instante(hoy, f.hora), sincronizadoEn: ahora,
-    };
-    lote.registros.push(reg);
-    (f.fotos ?? []).forEach((n, k) => lote.fotografias.push({
-      id: nuevoId(), registroId: reg.id, imagen: fotos[n], orden: k + 1, capturadaEn: reg.registradoEn,
-      latitud: GPS.latitud, longitud: GPS.longitud, sincronizadoEn: ahora,
-    }));
-  });
-  const alta: Alerta = {
-    id: nuevoId(), reporteId: reporte.id, columna: "construccion", empresaId: E.tecnasic, areaTurnoId: ats[A(6)],
-    descripcion: "Trabajos en altura en eje 8-9 de la torre sin línea de vida instalada en el tramo superior. Se detiene la actividad hasta regularizar.",
-    criticidad: "alta", registradoEn: instante(hoy, "11:30"), sincronizadoEn: ahora,
-  };
-  const media: Alerta = {
-    id: nuevoId(), reporteId: reporte.id, columna: "laboratorio", empresaId: E.idiem,
-    descripcion: "Densidad in situ de capa 17 de Muro Sotelo bajo el 95 % del Proctor modificado en Pk 24. Se solicita reprocesar y repetir el ensayo.",
-    criticidad: "media", registradoEn: instante(hoy, "12:10"), sincronizadoEn: ahora,
-  };
-  lote.alertas.push(alta, media);
-  lote.fotografias.push({ id: nuevoId(), alertaId: alta.id, imagen: fotos[4], orden: 1, capturadaEn: alta.registradoEn, sincronizadoEn: ahora });
 }
 
 /** Rol 7x7 de los usuarios de terreno (inspectores y jefe de turno), copiando el del inspector principal. */
