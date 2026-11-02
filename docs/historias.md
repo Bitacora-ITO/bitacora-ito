@@ -38,8 +38,13 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 | HU-04 | Declarar un frente sin actividad | Inspector | Alta |
 | HU-05 | Elegir un área del catálogo del contrato *(v2)* | Inspector | Media |
 | HU-06 | Revisar el borrador del reporte del turno | Inspector | Alta |
-| HU-09 | Previsualizar el PDF antes de aprobarlo *(nueva, v2)* | Inspector | Alta |
-| HU-07 | Emitir el reporte al mandante | Inspector | Alta |
+| HU-09 | Previsualizar el PDF antes de aprobarlo *(v2; desde la semana 8 lo hace el jefe de turno)* | Jefe de turno | Alta |
+| HU-07 | Emitir el reporte al mandante *(desde la semana 8 lo emite el jefe de turno, ver HU-14)* | Jefe de turno | Alta |
+| HU-11 | Ingresar con mi usuario y clave *(nueva, semana 8)* | Todos | Alta |
+| HU-12 | Cerrar y firmar mi parte del turno *(nueva, semana 8)* | Inspector | Alta |
+| HU-13 | Saber cuántos inspectores ya enviaron (semáforo) *(nueva, semana 8)* | Jefe de turno | Alta |
+| HU-14 | Consolidar las partes y enviar un solo reporte *(nueva, semana 8)* | Jefe de turno | Alta |
+| HU-15 | Mantener el catálogo del contrato desde un Excel *(nueva, semana 8)* | Administrador | Media |
 | HU-10 | Consultar mi historial en el calendario *(nueva, v2)* | Inspector | Media |
 | HU-08 | Consultar reportes anteriores | Jefatura | Baja |
 
@@ -414,3 +419,127 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 - **Dado** que ningún reporte coincide con la búsqueda,
 - **cuando** se ejecuta la consulta,
 - **entonces** el sistema lo indica y mantiene los filtros para corregirlos.
+
+---
+
+## Semana 8 · Consolidación por el jefe de turno
+
+Pedido del profesor guía: un turno tiene varios inspectores y el mandante recibe **un solo reporte**, que envía el jefe de turno. Tras probar la primera versión, el equipo pidió además que el inspector **firme** su parte, que el jefe vea **solo lo firmado**, un **semáforo** de avance, ingreso con clave y solo turno de día. Las historias HU-07 y HU-09 pasan al jefe de turno.
+
+## HU-11 · Ingresar con mi usuario y clave *(nueva, semana 8)*
+
+| | |
+|---|---|
+| **Rol** | Inspector, jefe de turno o administrador |
+| **Acción** | Elegir mi nombre de la lista de usuarios del contrato y escribir mi clave |
+| **Beneficio** | Ver solo lo que me corresponde y que lo registrado quede a mi nombre |
+
+**Escenario principal**
+
+- **Dado** que el administrador me cargó en el catálogo del contrato,
+- **cuando** elijo mi nombre en la lista, escribo mi clave y toco «Entrar»,
+- **entonces** la app abre la pantalla de mi rol: el inspector su turno, el jefe la consolidación y el administrador el catálogo, y no me deja abrir las pantallas de otro rol.
+
+**Escenario alternativo · clave incorrecta**
+
+- **Dado** que escribí mal la clave,
+- **cuando** toco «Entrar»,
+- **entonces** la app avisa «La clave no es correcta» y no entra.
+
+**Escenario alternativo · usuario recién agregado**
+
+- **Dado** que el administrador me agregó hoy en el Excel,
+- **cuando** abro la app con señal,
+- **entonces** la pantalla de ingreso descarga el catálogo nuevo y mi nombre aparece en la lista.
+
+> En la maqueta la clave es la misma para todos (1234). En producción se usaría Supabase Auth.
+
+## HU-12 · Cerrar y firmar mi parte del turno *(nueva, semana 8)*
+
+| | |
+|---|---|
+| **Rol** | Inspector de terreno |
+| **Acción** | Revisar mi parte, cerrarla y firmarla con mi clave para enviarla al jefe de turno |
+| **Beneficio** | Dejar constancia de que la información es mía y está correcta, sin tener que armar el reporte final |
+
+**Escenario principal**
+
+- **Dado** que todas mis áreas tienen registro o están declaradas sin actividad,
+- **cuando** toco «Cerrar y enviar al jefe de turno», marco la declaración y firmo con mi clave,
+- **entonces** mi parte queda firmada con mi nombre y la hora, sube a la nube y el jefe de turno la ve.
+
+**Escenario alternativo · sin firma**
+
+- **Dado** que registré pero no firmé,
+- **cuando** el jefe de turno revisa las partes,
+- **entonces** no ve ninguno de mis datos: solo que «Aún no envía».
+
+**Escenario alternativo · sin señal**
+
+- **Dado** que firmo sin señal,
+- **cuando** vuelve la conexión,
+- **entonces** la parte firmada se sube sola.
+
+## HU-13 · Saber cuántos inspectores ya enviaron *(nueva, semana 8)*
+
+| | |
+|---|---|
+| **Rol** | Jefe de turno |
+| **Acción** | Ver un semáforo con cuántos inspectores del día ya firmaron su parte |
+| **Beneficio** | No tener que revisar a cada rato si llegó todo, y consolidar en el momento justo |
+
+**Escenario principal**
+
+- **Dado** que hoy trabajan 4 inspectores y 3 ya firmaron,
+- **cuando** abro mi inicio o la consolidación,
+- **entonces** veo «3 de 4 ITO enviaron · 75 %» en ámbar, y la pantalla se actualiza sola.
+
+**Escenario · todos enviaron**
+
+- **Dado** que firma el último inspector,
+- **cuando** pasan a lo más 30 segundos,
+- **entonces** el semáforo pasa a verde (100 %), el teléfono vibra y la app indica que ya puedo consolidar.
+
+> El semáforo está en rojo si nadie ha enviado. Los inspectores en descanso según su rol 7x7 no cuentan.
+
+## HU-14 · Consolidar las partes y enviar un solo reporte *(nueva, semana 8)*
+
+| | |
+|---|---|
+| **Rol** | Jefe de turno |
+| **Acción** | Juntar las partes firmadas en un reporte, revisar el PDF y enviarlo al mandante |
+| **Beneficio** | Que el mandante reciba un único correo por turno con el trabajo de todos |
+
+**Escenario principal**
+
+- **Dado** que el semáforo está en verde,
+- **cuando** toco «Consolidar», reviso el clima y la vista previa del PDF, y toco «Aprobar y enviar al mandante»,
+- **entonces** el reporte junta las áreas de todos (1.0 el área, 1.1 la empresa), las alertas y «Elaborado por» con todos los inspectores, toma el correlativo siguiente del contrato y sale **un solo correo** a los destinatarios del contrato.
+
+**Escenario alternativo · falta un inspector**
+
+- **Dado** que el semáforo está en ámbar,
+- **cuando** toco «Consolidar»,
+- **entonces** la app advierte que el reporte saldrá sin las partes que faltan, y deja seguir si el jefe lo decide.
+
+## HU-15 · Mantener el catálogo del contrato desde un Excel *(nueva, semana 8)*
+
+| | |
+|---|---|
+| **Rol** | Administrador |
+| **Acción** | Llenar una plantilla Excel con el contrato, las áreas, las empresas, los usuarios y los destinatarios, y publicarla |
+| **Beneficio** | Cambiar el catálogo sin tocar el código, y que todos los teléfonos lo reciban |
+
+**Escenario principal**
+
+- **Dado** que descargué la plantilla y la llené,
+- **cuando** la cargo en la app y toco «Publicar catálogo»,
+- **entonces** la app valida el archivo, muestra qué cambia y publica una versión nueva. Los teléfonos la reciben al abrir la app.
+
+**Escenario alternativo · alguien deja de trabajar**
+
+- **Dado** que un inspector ya no está en el contrato,
+- **cuando** lo marco «Activo: No» y publico,
+- **entonces** queda inactivo, sin borrar lo que registró.
+
+> Publicar el Excel nunca hace retroceder el correlativo de los reportes ya enviados. El correo de los usuarios es opcional.

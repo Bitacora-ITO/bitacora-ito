@@ -148,3 +148,26 @@ El apunte pide que los estados estén «señalados en la anotación». Al lado d
 - [ ] Mapa de navegación y registro de decisiones en `docs/prototipo.md`
 - [ ] `README.md` enlaza a `docs/prototipo.md`
 - [ ] Enlace de Figma pegado y abierto en una ventana privada para confirmar que se ve sin iniciar sesión
+
+## Semana 8 · versión 2 (ya aplicada en Figma)
+
+Siete marcos nuevos y tres modificados. No se borró ningún marco: los que quedaron obsoletos llevan encima una nota «Reemplazado en v2 por…». Las notas amarillas «v2 · …» marcan lo nuevo.
+
+| Marco | Qué muestra | Lleva a |
+|---|---|---|
+| **09a Ingreso · usuario y clave** | Lista de usuarios con su rol, clave y «Entrar» | Inspector → 01a · Jefe → 10a |
+| **04b Borrador** *(modificado)* | El botón ahora dice «Cerrar y enviar al jefe de turno» | 05e |
+| **05e Cerrar mi parte · firma** | Resumen de la parte, declaración y «Firma con tu clave» | «Firmar y enviar» → 05f · volver → 04b |
+| **05f Parte firmada y enviada** | Confirmación con nombre y hora | 01a |
+| **10a Inicio jefe de turno · semáforo ámbar** | «3 de 4 ITO enviaron · 75 %» y «Consolidar el día» | 10b |
+| **10b Consolidación · 3 de 4 ámbar** | Partes firmadas, «Aún no envía» y aviso de parte faltante | «Consolidar 3 partes» → 07a · tocar el semáforo → 10c (simula que llega la cuarta) |
+| **10c Consolidación · 4 de 4 verde** | Semáforo en verde, todas las partes | «Consolidar 4 partes» → 07a |
+| **07a / 07b Vista previa del PDF** *(modificados)* | Ahora es del jefe: «Aprobar y enviar al mandante» | 10d · «Volver» → consolidación |
+| **10d Reporte consolidado enviado** | Confirmación del único correo del turno | 10a |
+| **05a Enviar al mandante** *(obsoleto)* | Con la nota «Reemplazado en v2 por 05e y 05f» | — |
+
+**Flujos de inicio nuevos:** «Ingreso» (09a) y «Jefe de turno» (10a). Se mantienen los cinco anteriores.
+
+**Pendiente menor:**
+- El catálogo del administrador y la pantalla de Ajustes («Cerrar sesión») están en la app pero no en Figma.
+- El PDF dibujado en 07a/07b todavía dice «Elaborado por: Jorge Orellana S.».
