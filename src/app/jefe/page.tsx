@@ -6,7 +6,7 @@
 // Pasos: lista de partes (Supabase) → consolidar (descarga y fusión, lib/consolidar.ts) → revisión y clima
 // → vista previa del PDF → «Aprobar y enviar al mandante» (misma API /api/enviar) → enviado.
 // «Descargar paquete (.zip)» deja el PDF, un resumen.md y las fotos con nombres legibles.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hoyLocal } from "@/lib/db";
 import { CLIMA, numeroCorto, turnoActual } from "@/lib/repositorio";
@@ -26,6 +26,7 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import VistaPreviaPdf from "@/components/VistaPreviaPdf";
 import { ListaPartes, ListaPendientes } from "@/components/consolidacion/ListaPartes";
+import Semaforo, { luzDe } from "@/components/consolidacion/Semaforo";
 import { Aviso, Chip, Encabezado, Etiqueta, Giro, MensajeError, Pantalla, Segmentado, estilos as s } from "@/components/ui";
 import { IcoAlerta, IcoCheck, IcoSinSenal } from "@/components/iconos";
 import l from "@/components/listas.module.css";
@@ -67,22 +68,44 @@ export default function Jefe() {
   const fuente = useMemo(() => fuenteParaPantalla(obtenerSupabase()), []);
   const local = useConsulta(() => consolidadoLocal(contratoId, fecha, turno), [contratoId, fecha, turno]).datos;
 
-  const cargar = useCallback(async () => {
+  const conocidas = useRef<Set<string>>(new Set());
+  const luzPrevia = useRef<string | undefined>(undefined);
+  const [actualizado, setActualizado] = useState<string>();
+
+  /** `silencioso`: refresco del semáforo cada 30 s, sin girar la pantalla ni desmarcar lo que el jefe quitó. */
+  const cargar = useCallback(async (silencioso = false) => {
     if (!fuente) return;
-    setCarga({ tipo: "cargando" });
+    if (!silencioso) setCarga({ tipo: "cargando" });
     try {
       // Si en este mismo teléfono un inspector dejó registros sin subir, se suben antes de leer la nube.
       await sincronizar();
       const estado = await leerEstadoTurno(fuente, contratoId, fecha, turno);
       setCarga({ tipo: "listo", estado });
-      // Semana 8 v2: la lista trae solo partes firmadas; todas quedan marcadas para consolidar.
-      setElegidas(new Set(estado.partes.map((p) => p.reporteId)));
+      setActualizado(hora(new Date().toISOString()));
+      // La lista trae solo partes firmadas: las nuevas llegan marcadas para consolidar.
+      const ids = estado.partes.map((p) => p.reporteId);
+      // Las nuevas se calculan ANTES de actualizar `conocidas`: el actualizador de estado corre después.
+      const nuevas = ids.filter((id) => !conocidas.current.has(id));
+      conocidas.current = new Set(ids);
+      setElegidas((prev) => silencioso ? new Set([...[...prev].filter((id) => ids.includes(id)), ...nuevas]) : new Set(ids));
+      // Aviso al pasar a verde (todas las partes llegaron): vibra si el teléfono lo permite.
+      const luz = luzDe(estado.semaforo.enviaron, estado.semaforo.esperados);
+      if (luz === "verde" && luzPrevia.current && luzPrevia.current !== "verde") {
+        try { navigator.vibrate?.([200, 100, 200]); } catch { /* sin vibración */ }
+      }
+      luzPrevia.current = luz;
     } catch (err) {
-      setCarga({ tipo: "error", mensaje: mensaje(err) });
+      if (!silencioso) setCarga({ tipo: "error", mensaje: mensaje(err) });
     }
   }, [fuente, contratoId, fecha, turno]);
 
   useEffect(() => { void cargar(); }, [cargar]);
+  // Semáforo vivo: mientras el jefe está en la lista, vuelve a mirar la nube cada 30 s.
+  useEffect(() => {
+    if (paso.tipo !== "lista") return;
+    const t = window.setInterval(() => { if (navigator.onLine) void cargar(true); }, 30_000);
+    return () => window.clearInterval(t);
+  }, [cargar, paso.tipo]);
 
   const consolidacion = useMemo(() => {
     if (!descarga) return undefined;
@@ -312,7 +335,7 @@ export default function Jefe() {
   const estado = carga.tipo === "listo" ? carga.estado : undefined;
   const yaEnviado = local?.estado === "enviado";
   const nElegidas = estado ? estado.partes.filter((p) => elegidas.has(p.reporteId)).length : 0;
-  const sinEntregar = estado ? estado.partes.filter((p) => elegidas.has(p.reporteId) && !p.entregado).length : 0;
+  const faltan = estado ? Math.max(0, estado.semaforo.esperados - estado.semaforo.enviaron) : 0;
 
   return (
     <Pantalla pie={
@@ -322,7 +345,11 @@ export default function Jefe() {
           <button className={s.botonPrimario} onClick={() => setVerEnviado(true)}>Ver el PDF enviado</button>
         ) : (
           <>
-            {sinEntregar > 0 && <p className={s.notaPie} style={{ fontSize: 14 }}>{sinEntregar === 1 ? "1 inspector sigue registrando" : `${sinEntregar} inspectores siguen registrando`}: se incluye lo que lleva subido</p>}
+            {faltan > 0 && nElegidas > 0 && (
+              <p className={s.notaPie} style={{ fontSize: 14 }}>
+                {faltan === 1 ? "Falta 1 ITO" : `Faltan ${faltan} ITO`}: puedes consolidar igual, pero el reporte saldrá sin {faltan === 1 ? "su parte" : "sus partes"}
+              </p>
+            )}
             <button className={s.botonPrimario} onClick={consolidar} disabled={!fuente || !estado || nElegidas === 0 || descargando || !conectado}>
               {descargando ? <><Giro chico /> {paso.texto}</> : nElegidas ? `Consolidar ${nElegidas} ${nElegidas === 1 ? "parte" : "partes"}` : "Consolidar"}
             </button>
@@ -368,6 +395,7 @@ export default function Jefe() {
         </>
       ) : estado && (
         <>
+          {!yaEnviado && <Semaforo enviaron={estado.semaforo.enviaron} esperados={estado.semaforo.esperados} actualizado={actualizado} />}
           <Etiqueta derecha={`${estado.partes.length} ${estado.partes.length === 1 ? "firmada" : "firmadas"}`}>Partes enviadas por los inspectores</Etiqueta>
           <ListaPartes partes={estado.partes} elegidas={elegidas} alCambiar={alternar} deshabilitado={descargando || yaEnviado} />
           <ListaPendientes pendientes={estado.pendientes} />

@@ -367,7 +367,9 @@ export async function sembrar(destinatario?: string): Promise<void> {
     await db.ajustes.bulkPut([
       { clave: CLAVES.usuario, valor: USUARIO_ID },
       { clave: CLAVES.contrato, valor: CONTRATO_ID },
-      { clave: CLAVES.destinatario, valor: contrato.destinatarios[0] },
+      // El «destinatario de prueba» solo se guarda si alguien lo eligió a mano: si no, mandan los
+      // destinatarios del catálogo publicado (hoja Contrato del Excel).
+      ...(destinatario ? [{ clave: CLAVES.destinatario, valor: destinatario }] : []),
       { clave: CLAVES.semilla, valor: SEMILLA_VERSION },
     ]);
   });

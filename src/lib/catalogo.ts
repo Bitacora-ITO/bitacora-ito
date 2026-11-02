@@ -156,9 +156,13 @@ export function fuenteSupabase(sb: SupabaseClient): FuenteCatalogo {
     },
     async publicar(cat, { cargadoPor, resumen }) {
       const cid = cat.contrato.id;
+      // El correlativo nunca retrocede: si en la nube ya se enviaron reportes con números mayores que el
+      // «Último correlativo» del Excel, se conserva el de la nube (semana 8 v2, encontrado en las pruebas).
+      const { data: enNube } = await sb.from("contrato").select("ultimo_correlativo").eq("id", cid).maybeSingle();
+      const ultimo = Math.max(Number(enNube?.ultimo_correlativo ?? 0), cat.contrato.ultimoCorrelativo);
       // Orden por las llaves foráneas: contrato → empresa → frente → usuario → versión. Solo upsert: nada se borra.
       const pasos: [string, string, FilaRemota[]][] = [
-        ["contrato", "guardar el contrato", [aFilaContrato(cat.contrato)]],
+        ["contrato", "guardar el contrato", [aFilaContrato({ ...cat.contrato, ultimoCorrelativo: ultimo })]],
         ["empresa", "guardar las empresas", cat.empresas.map(aFilaEmpresa)],
         ["frente", "guardar las áreas", cat.areas.map(aFilaFrente)],
         ["usuario", "guardar los usuarios", cat.usuarios.map((x) => aFilaUsuario(x, cid))],

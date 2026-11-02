@@ -1,8 +1,11 @@
 "use client";
 // Inicio del jefe de turno (rol "jefatura"): solo la consolidación del día (semana 8 v2: el jefe no registra).
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { db, hoyLocal } from "@/lib/db";
+import { obtenerSupabase } from "@/lib/supabase";
+import { fuenteParaPantalla, leerEstadoTurno } from "@/lib/consolidacion-remota";
+import Semaforo from "./Semaforo";
 import { numeroCorto, turnoActual } from "@/lib/repositorio";
 import { fechaCorta, hora, nombreCorto } from "@/lib/fechas";
 import { useConsulta } from "@/hooks/useConsulta";
@@ -26,6 +29,20 @@ export default function InicioJefe() {
     return { consolidado };
   }, [contexto.contrato.id, hoy, turno]);
 
+  // Semáforo en el inicio: cuántos ITO ya firmaron hoy. Se vuelve a mirar la nube cada 30 s.
+  const [semaforo, setSemaforo] = useState<{ enviaron: number; esperados: number; hora: string }>();
+  useEffect(() => {
+    const fuente = fuenteParaPantalla(obtenerSupabase());
+    if (!fuente) return;
+    let vivo = true;
+    const mirar = () => leerEstadoTurno(fuente, contexto.contrato.id, hoy, turno)
+      .then((e) => vivo && setSemaforo({ ...e.semaforo, hora: hora(new Date().toISOString()) }))
+      .catch(() => { /* sin señal: queda el último valor */ });
+    void mirar();
+    const t = window.setInterval(() => { if (navigator.onLine) void mirar(); }, 30_000);
+    return () => { vivo = false; window.clearInterval(t); };
+  }, [contexto.contrato.id, hoy, turno]);
+
   const consolidado = datos?.consolidado;
   return (
     <Pantalla pie={
@@ -44,6 +61,10 @@ export default function InicioJefe() {
       </div>
 
       <AvisoCatalogo />
+
+      {semaforo && consolidado?.estado !== "enviado" && (
+        <Semaforo enviaron={semaforo.enviaron} esperados={semaforo.esperados} actualizado={semaforo.hora} />
+      )}
 
       <div className={c.inicio}>
         <h2>Consolidación del día</h2>

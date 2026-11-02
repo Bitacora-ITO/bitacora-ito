@@ -1,15 +1,26 @@
 "use client";
 // Inicio de sesión de la maqueta (semana 8 v2): se elige el usuario de una lista desplegable y se escribe la
 // clave (CLAVE_MAQUETA, la misma para todos). El rol que trae el usuario en el catálogo define qué pantallas ve.
-import { useState } from "react";
-import { usuariosDelContrato } from "@/lib/catalogo";
+import { useEffect, useState } from "react";
+import { descargarCatalogo, usuariosDelContrato, verificarCatalogo } from "@/lib/catalogo";
 import { etiquetaRol } from "@/lib/catalogo-excel";
 import { CLAVE_MAQUETA, iniciarSesion } from "@/lib/sesion";
 import { useConsulta } from "@/hooks/useConsulta";
 import { Etiqueta, Giro, MensajeError, estilos as s } from "../ui";
 
 export default function ElegirIdentidad({ alElegir }: { alElegir: (id: string) => Promise<void> }) {
-  const { datos: usuarios, error } = useConsulta(() => usuariosDelContrato(), []);
+  // Antes de mostrar la lista se trae el catálogo publicado si hay uno nuevo: así un ITO recién agregado
+  // en el Excel del administrador puede entrar desde cualquier teléfono. Sin señal queda la lista local.
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    let vivo = true;
+    verificarCatalogo()
+      .then((e) => (e.hayNuevo ? descargarCatalogo() : null))
+      .then((v) => { if (vivo && v) setRevision((n) => n + 1); })
+      .catch(() => { /* sin señal o sin catálogo publicado: se usa el local */ });
+    return () => { vivo = false; };
+  }, []);
+  const { datos: usuarios, error } = useConsulta(() => usuariosDelContrato(), [revision]);
   const [usuarioId, setUsuarioId] = useState("");
   const [clave, setClave] = useState("");
   const [entrando, setEntrando] = useState(false);

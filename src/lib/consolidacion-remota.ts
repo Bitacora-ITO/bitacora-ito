@@ -239,6 +239,8 @@ export interface EstadoTurno {
   contrato: FilaContrato;
   partes: ResumenParte[];
   pendientes: InspectorPendiente[];
+  /** ITO del día (activos y sin descanso) y cuántos ya firmaron y enviaron. */
+  semaforo: { enviaron: number; esperados: number };
 }
 
 const PARTE_VISIBLE = new Set(["generado", "aprobado", "entregado", "enviado"]);
@@ -279,7 +281,12 @@ export async function leerEstadoTurno(f: FuenteConsolidacion, contratoId: string
       return { id: u.id, nombre: u.nombre, motivo: descansa && !suya ? "descanso" as const : "pendiente" as const, estadoParte: suya?.estado };
     })
     .sort((a, b) => (a.motivo === b.motivo ? a.nombre.localeCompare(b.nombre, "es") : a.motivo === "pendiente" ? -1 : 1));
-  return { contrato, partes, pendientes };
+  // Semáforo: ITO activos que trabajan hoy (sin los de descanso) y cuántos de ellos ya firmaron.
+  const activos = usuarios.filter((u) => u.rol === "inspector" && u.activo !== false).map((u) => u.id);
+  const descansan = new Set(pendientes.filter((p) => p.motivo === "descanso").map((p) => p.id));
+  const esperados = activos.filter((id) => !descansan.has(id));
+  const enviaron = esperados.filter((id) => entregaron.has(id)).length;
+  return { contrato, partes, pendientes, semaforo: { enviaron, esperados: esperados.length } };
 }
 
 // ───────────────────────── Descarga de las partes elegidas ─────────────────────────

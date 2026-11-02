@@ -12,7 +12,9 @@ export const CLAVES = {
   usuario: "usuarioActual",
   contrato: "contratoActual",
   semilla: "semillaVersion",
-  destinatario: "destinatarioPrueba",
+  // Semana 8 v2: clave nueva. La anterior la llenaba la siembra con el correo de ejemplo y eso hacía
+  // ignorar los destinatarios del catálogo publicado; los teléfonos ya instalados dejan de arrastrarla.
+  destinatario: "destinatarioPrueba.v2",
 } as const;
 
 export async function leerAjuste(clave: string): Promise<string | undefined> {
