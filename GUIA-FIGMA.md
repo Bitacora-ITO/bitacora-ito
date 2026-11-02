@@ -164,10 +164,11 @@ Siete marcos nuevos y tres modificados. No se borró ningún marco: los que qued
 | **10c Consolidación · 4 de 4 verde** | Semáforo en verde, todas las partes | «Consolidar 4 partes» → 07a |
 | **07a / 07b Vista previa del PDF** *(modificados)* | Ahora es del jefe: «Aprobar y enviar al mandante» | 10d · «Volver» → consolidación |
 | **10d Reporte consolidado enviado** | Confirmación del único correo del turno | 10a |
+| **09b Ajustes · sesión** (jefe) | Sesión, «Cerrar sesión», destinatario del correo de prueba y reinicio de la demostración | Engranaje de 10a → 09b · X → atrás · «Cerrar sesión» → 09a |
+| **09c Ajustes · inspector** | Igual, sin el destinatario | Engranaje de 01a → 09c · «Cerrar sesión» → 09a |
+| **11a Catálogo del contrato · administrador** | Descargar plantilla, cargar Excel y publicar | 09a (opción Administrador) → 11a · «Cerrar sesión» → 09a |
 | **05a Enviar al mandante** *(obsoleto)* | Con la nota «Reemplazado en v2 por 05e y 05f» | — |
 
-**Flujos de inicio nuevos:** «Ingreso» (09a) y «Jefe de turno» (10a). Se mantienen los cinco anteriores.
+**Flujos de inicio nuevos:** «Ingreso» (09a), «Jefe de turno» (10a) y «Administrador» (11a). Se mantienen los cinco anteriores.
 
-**Pendiente menor:**
-- El catálogo del administrador y la pantalla de Ajustes («Cerrar sesión») están en la app pero no en Figma.
-- El PDF dibujado en 07a/07b todavía dice «Elaborado por: Jorge Orellana S.».
+En 07a y 07b el PDF dibujado dice «Elaborado por: J. Orellana / A. Castillo / C. Fuentes / A. Díaz». 01a y 10a tienen el engranaje de Ajustes.

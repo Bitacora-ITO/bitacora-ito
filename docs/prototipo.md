@@ -221,7 +221,8 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 | 10b / 10c Consolidación del día (ámbar y verde) | Jefe de turno | Semáforo, partes firmadas e inspectores que aún no envían. Consolida | HU-13, HU-14 |
 | Vista previa del PDF (07a/07b) | Jefe de turno | Ahora es del jefe: «Aprobar y enviar al mandante» | HU-09, HU-14 |
 | 10d Reporte consolidado enviado | Jefe de turno | Confirmación del único correo del turno | HU-14 |
-| Catálogo del contrato *(solo en la app)* | Administrador | Plantilla Excel: descargar, cargar, revisar cambios y publicar | HU-15 |
+| 09b / 09c Ajustes | Jefe / Inspector | Sesión y «Cerrar sesión» (el jefe ve además el destinatario de prueba) | HU-11 |
+| 11a Catálogo del contrato | Administrador | Plantilla Excel: descargar, cargar, revisar cambios y publicar | HU-15 |
 
 **Flujo nuevo:** Ingreso → (inspector) turno → registrar → borrador → **Cerrar y enviar al jefe de turno** → firma → parte enviada. En paralelo: (jefe) inicio con semáforo → consolidación → **Consolidar** → revisión → vista previa del PDF → **Aprobar y enviar al mandante**.
 
