@@ -20,6 +20,7 @@ const ESTADO_INFORME: Record<Reporte["estado"], string> = {
   borrador: "Borrador sin aprobar",
   generado: "PDF generado sin aprobar",
   aprobado: "Aprobado, sin enviar",
+  entregado: "Entregado al jefe de turno",
   enviado: "Enviado",
 };
 
@@ -32,14 +33,16 @@ function Dia() {
   const { detalle: { reporte, envio, areas, alertas, fotos }, rol } = datos;
   const volver = () => router.push(`/historial?m=${fecha.slice(0, 7)}`);
   const pie = <button className={s.botonPrimario} onClick={volver}>Volver al calendario</button>;
-  const enviado = envio?.estado === "enviado";
+  // «Entregado al jefe de turno» cuenta como cumplido (semana 8): se muestra igual que un día enviado.
+  const entregado = reporte?.estado === "entregado";
+  const enviado = envio?.estado === "enviado" || entregado;
   const empresas = new Map(areas.map((a) => [a.empresa.id, a.empresa.nombre]));
 
   if (reporte && enviado) {
     return (
       <Pantalla pie={pie}>
         <Encabezado volver={{ texto: "Historial", onClick: volver }} titulo={fechaCorta(fecha)} />
-        <div className={h.chip}><Chip tono="verde">Enviado {hora(envio?.enviadoEn)} · acuse recibido</Chip></div>
+        <div className={h.chip}><Chip tono="verde">{entregado && envio?.estado !== "enviado" ? `Entregado al jefe de turno ${hora(reporte.entregadoEn)}` : `Enviado ${hora(envio?.enviadoEn)} · acuse recibido`}</Chip></div>
         <h2 className={s.h1}>Reporte {contexto.contrato.numero}-{numeroCorto(reporte.correlativo)}</h2>
         <p className={s.textoSuave} style={{ fontSize: 14 }}>
           Turno {reporte.turno === "dia" ? "día" : "noche"} · {contexto.usuario.nombre} · clima: {CLIMA[reporte.climaTurno].toLowerCase()} / mañana: {CLIMA[reporte.climaProyeccion].toLowerCase()}

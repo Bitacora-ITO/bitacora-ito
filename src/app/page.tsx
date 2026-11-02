@@ -1,6 +1,10 @@
 "use client";
 // P1 · Turno y áreas (HU-01): fecha, turno, clima, áreas del turno con su estado y acceso al reporte.
+// Semana 8 v2, navegación por rol: el inspector ve P1 y el jefe de turno («jefatura») solo la consolidación
+// del día. El administrador no pasa por aquí: Proveedor lo lleva a /admin.
 import { useEffect, useState } from "react";
+import { useSesion } from "@/lib/sesion";
+import InicioJefe from "@/components/consolidacion/InicioJefe";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -12,6 +16,7 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import FilaArea from "@/components/FilaArea";
 import MenuAjustes from "@/components/MenuAjustes";
+import AvisoCatalogo from "@/components/catalogo/AvisoCatalogo";
 import { Aviso, Cargando, Etiqueta, Giro, MensajeError, Pantalla, Segmentado, estilos as s } from "@/components/ui";
 import {
   IcoAjustes, IcoAlerta, IcoCalendario, IcoCheck, IcoDocumento, IcoMas, IcoSinSenal, IcoUbicacion,
@@ -20,7 +25,15 @@ import p from "./turno.module.css";
 
 const OPC_CLIMA = (Object.keys(CLIMA) as Clima[]).map((valor) => ({ valor, etiqueta: CLIMA[valor] }));
 
-export default function Turno() {
+export default function Inicio() {
+  const sesion = useSesion();
+  if (!sesion) return <Cargando texto="Cargando el turno…" />;
+  if (sesion.rol === "jefatura") return <InicioJefe />;
+  if (sesion.rol === "admin") return <Cargando texto="Abriendo el catálogo…" />;
+  return <Turno />;
+}
+
+function Turno() {
   const router = useRouter();
   const app = useApp();
   const { contexto, reporteHoyId, conectado, pendientes, ultimaSync, errorSync, sincronizando } = app;
@@ -56,7 +69,7 @@ export default function Turno() {
   }
 
   function revisar() {
-    if (reporte.estado === "aprobado" || reporte.estado === "enviado" || envio) router.push("/enviar");
+    if (reporte.estado === "aprobado" || reporte.estado === "entregado" || reporte.estado === "enviado" || envio) router.push("/enviar");
     else router.push("/borrador");
   }
 
@@ -83,7 +96,7 @@ export default function Turno() {
           </div>
           {!hayRegistros && <p className={s.notaPie}>Disponible cuando haya registros</p>}
           <button className={s.botonPrimario} disabled={!hayRegistros} onClick={revisar}>
-            <IcoDocumento /> {reporte.estado === "enviado" ? "Ver reporte enviado" : "Revisar reporte del turno"}
+            <IcoDocumento /> {reporte.estado === "enviado" ? "Ver reporte enviado" : reporte.estado === "entregado" ? "Ver mi parte entregada" : "Revisar reporte del turno"}
           </button>
         </>
       }
@@ -102,6 +115,8 @@ export default function Turno() {
           </button>
         </div>
       </div>
+
+      <AvisoCatalogo />
 
       {!editable && (
         <Aviso tono={reporte.estado === "enviado" ? "verde" : "ambar"} icono={<IcoCheck />}

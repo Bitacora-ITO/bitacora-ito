@@ -1,7 +1,9 @@
 "use client";
 // P4.5 · Vista previa del PDF (HU-09). Regla 9: el reporte pasa a «generado» al armar el PDF
-// y solo desde aquí se aprueba («Aprobar y enviar»).
+// y solo desde aquí se aprueba. Semana 8: el inspector aprueba y ENTREGA su parte al jefe de turno
+// («Aprobar y entregar»); el envío al mandante lo hace el jefe con el consolidado (/jefe).
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSesion } from "@/lib/sesion";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import { aprobarReporte, areasSinResolver, guardarPdfGenerado } from "@/lib/repositorio";
@@ -22,6 +24,7 @@ type Estado =
 export default function VistaPrevia() {
   const router = useRouter();
   const { contexto, reporteHoyId } = useApp();
+  const sesion = useSesion();
   const [estado, setEstado] = useState<Estado>({ tipo: "generando" });
   const [pagina, setPagina] = useState({ actual: 1, total: 1 });
   const [aprobando, setAprobando] = useState(false);
@@ -36,8 +39,8 @@ export default function VistaPrevia() {
       const reporte = await db.reportes.get(reporteHoyId);
       if (!reporte) throw new Error("No se encontró el reporte del turno.");
       const guardado = await db.pdfs.get(reporteHoyId);
-      // Ya aprobado o enviado: se muestra el mismo PDF, sin regenerarlo.
-      if ((reporte.estado === "aprobado" || reporte.estado === "enviado") && guardado) {
+      // Ya aprobado, entregado o enviado: se muestra el mismo PDF, sin regenerarlo.
+      if ((reporte.estado === "aprobado" || reporte.estado === "entregado" || reporte.estado === "enviado") && guardado) {
         setEstado({ tipo: "listo", pdf: guardado.pdf, aprobado: true });
         return;
       }
@@ -72,15 +75,17 @@ export default function VistaPrevia() {
 
   const alCambiarPagina = useCallback((actual: number, total: number) => setPagina({ actual, total }), []);
   const listo = estado.tipo === "listo";
+  const soyJefe = sesion?.rol === "jefatura";
+  const textoAprobar = listo && estado.aprobado ? (soyJefe ? "Ver mi entrega" : "Ver la entrega") : "Aprobar y entregar";
 
   return (
     <Pantalla pie={
       <>
-        {listo && <p className={s.notaPie} style={{ fontSize: 14 }}>Así saldrá el PDF que se envía · pellizca para acercar</p>}
+        {listo && <p className={s.notaPie} style={{ fontSize: 14 }}>Así sale el PDF de tu parte · pellizca para acercar</p>}
         {errorAprobar && <Aviso tono="rojo" icono={<IcoAlerta />} titulo="No se pudo aprobar">{errorAprobar}</Aviso>}
         <button className={s.botonSecundario} onClick={() => router.push("/borrador")}>Volver a editar</button>
         <button className={s.botonPrimario} onClick={aprobar} disabled={!listo || aprobando}>
-          {aprobando ? <><Giro chico /> Aprobando…</> : listo && estado.aprobado ? "Ir a enviar" : "Aprobar y enviar"}
+          {aprobando ? <><Giro chico /> Aprobando…</> : textoAprobar}
         </button>
       </>
     }>
