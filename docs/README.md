@@ -35,8 +35,15 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 7: análisis ético, de sostenibilidad e impacto.** El análisis está en [docs/etica.md](docs/etica.md): mapa de impacto, ficha de datos personales, accesibilidad y matriz de riesgos. La aplicación ya tiene código: está publicada en Vercel y se genera también como APK para Android.
+**Semana 8: consolidación por el jefe de turno (versión 2, aprobada y publicada en Vercel).** Pedido del profesor guía: varios inspectores por turno y un solo reporte al mandante, enviado por el jefe de turno.
 
+- Cada persona entra con su nombre y clave, y solo ve lo de su rol: inspector, jefe de turno o administrador.
+- El inspector registra en terreno, **cierra su parte y la firma**. No genera PDF.
+- El jefe de turno ve solo las partes firmadas y sigue un **semáforo** («3 de 4 ITO enviaron»). Con el semáforo en verde consolida, genera el PDF y envía **un solo correo** al mandante.
+- El administrador mantiene el catálogo del contrato (áreas, empresas, usuarios y destinatarios) desde una **plantilla Excel**.
+- Solo turno de día. El detalle está en [docs/prototipo.md](docs/prototipo.md#6-cambios-de-la-semana-8) y las historias en [docs/historias.md](docs/historias.md).
+
+La aplicación está publicada en Vercel y se genera también como APK para Android.
 | Hito | Semana | Estado |
 |---|---|---|
 | Propuesta de valor, alcance, usuarios (Avance 1) | 1 | Entregado |
@@ -46,7 +53,7 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 | Prototipo navegable (Avance 5) | 5 | Entregado |
 | Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
 | Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
-| PoC del flujo principal | 8 | Pendiente |
+| Consolidación por el jefe de turno, firma del inspector y semáforo (PoC del flujo principal) | 8 | Entregado |
 | MVP validado con inspectores | 12 | Pendiente |
 
 ## Stack tecnológico

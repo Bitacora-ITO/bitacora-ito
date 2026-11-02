@@ -291,3 +291,24 @@ Los cambios que introdujo esa segunda etapa:
 | El reporte pasa a `generado` con la vista previa y a `aprobado` solo desde ella (regla 9) | Observación del profesor guía: el inspector debe revisar el PDF antes de enviarlo |
 | Se agregó `rol_turno` (7x7 y primer día de turno) | El historial debe distinguir los días de descanso de los informes no entregados |
 
+## 10. Cambios de la semana 8 (consolidación por el jefe de turno)
+
+Migración `supabase/migrations/0002_consolidacion_y_catalogo.sql`. Solo agrega: no borra ni cambia columnas existentes.
+
+| Cambio | Para qué |
+|---|---|
+| `usuario.rol`: `inspector`, `jefatura` (jefe de turno) o `admin` | El rol define qué pantallas ve cada persona al ingresar. |
+| `usuario.contrato_id` | Cada usuario pertenece al catálogo de un contrato. El correo del usuario es opcional. |
+| `reporte.entregado_en` | Hora en que el inspector **firmó y envió** su parte al jefe de turno. Si está vacío, el jefe no ve esa parte. |
+| `reporte.aprobado_por` y `reporte.hora_aprobacion` | Firma del inspector: quién firmó su parte y a qué hora. |
+| Tabla `consolidado` | El reporte único del día: contrato, fecha, turno, correlativo, partes incluidas, «elaborado por», ruta del PDF y estado (`borrador`, `generado`, `aprobado`, `enviado`). Lo crea el jefe de turno. |
+| Tabla `catalogo_version` | Cada publicación del Excel del administrador: número de versión, quién la cargó y el resumen de cambios. Los teléfonos comparan su versión con esta. |
+
+**Reglas nuevas**
+
+1. Hay un reporte por inspector, contrato y día. Si dos inspectores comparten teléfono, cada uno tiene el suyo.
+2. El jefe de turno solo lee partes con `entregado_en` lleno: lo no firmado no sale del teléfono hacia su pantalla. Igual se respalda en la nube.
+3. El semáforo cuenta a los inspectores activos del contrato que trabajan ese día según su `rol_turno` (7x7) y cuántos de ellos firmaron.
+4. El correlativo del consolidado es `contrato.ultimo_correlativo + 1`. Nunca retrocede: si el administrador publica un Excel con un número menor, se conserva el de la nube.
+5. Solo turno de día.
+6. Publicar el catálogo no borra nada. Lo que ya no va queda como no vigente o inactivo.

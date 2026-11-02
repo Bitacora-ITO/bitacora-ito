@@ -207,3 +207,37 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 - Ícono de calendario arriba a la derecha en P1, que abre **08a**: el calendario del mes con cada día en verde (enviado), rojo (no entregado) o gris (descanso), más el resumen del mes y el del mes anterior.
 - La diferencia entre descanso y no entregado la da el **rol 7x7**. El inspector marca el **primer día de su turno** en **08d** y desde ahí se calculan los ciclos. Cada inicio de turno queda marcado con un punto en el calendario.
 - Al tocar un día enviado, **08b** muestra los datos con que se armó ese informe (los mismos de la vista previa), no el PDF. Al tocar un día rojo, **08c** muestra por qué cuenta como no entregado.
+
+## 6. Cambios de la semana 8
+
+**Pedido del profesor guía:** consolidar los reportes de varios inspectores y que el jefe de turno sea quien envía un solo reporte al mandante. Tras probar la primera versión, el equipo pidió además que el inspector **firme** su parte, que el jefe vea **solo lo firmado**, un **semáforo** de avance, ingreso con clave y solo turno de día. Los marcos nuevos ya están en el archivo de Figma.
+
+| Pantalla | Rol | Qué hace | Historia |
+|---|---|---|---|
+| 09a Ingreso | Todos | Lista de usuarios del contrato y clave. Cada rol abre solo sus pantallas | HU-11 |
+| 05e Cerrar mi parte (firma) | Inspector | Resumen de la parte, declaración y firma con la clave. **Reemplaza** la vista previa del PDF y el envío del inspector | HU-12 |
+| 05f Parte firmada y enviada | Inspector | Confirmación con nombre y hora de la firma | HU-12 |
+| 10a Inicio del jefe | Jefe de turno | Semáforo «N de M ITO enviaron» y acceso a «Consolidar el día» | HU-13 |
+| 10b / 10c Consolidación del día (ámbar y verde) | Jefe de turno | Semáforo, partes firmadas e inspectores que aún no envían. Consolida | HU-13, HU-14 |
+| Vista previa del PDF (07a/07b) | Jefe de turno | Ahora es del jefe: «Aprobar y enviar al mandante» | HU-09, HU-14 |
+| 10d Reporte consolidado enviado | Jefe de turno | Confirmación del único correo del turno | HU-14 |
+| Catálogo del contrato *(solo en la app)* | Administrador | Plantilla Excel: descargar, cargar, revisar cambios y publicar | HU-15 |
+
+**Flujo nuevo:** Ingreso → (inspector) turno → registrar → borrador → **Cerrar y enviar al jefe de turno** → firma → parte enviada. En paralelo: (jefe) inicio con semáforo → consolidación → **Consolidar** → revisión → vista previa del PDF → **Aprobar y enviar al mandante**.
+
+**Decisiones de la semana 8**
+
+- **El inspector ya no genera PDF.** El informe final es solo del jefe de turno. Así se evitan PDF parciales que nadie usa y el mandante recibe un solo documento.
+- **Firmar con la clave** deja constancia de quién valida la información, sin agregar otra contraseña. En producción sería la cuenta de Supabase Auth.
+- **El jefe no ve partes sin firmar**, aunque ya estén respaldadas en la nube. Así se respeta que el inspector decide cuándo su información está lista.
+- **Semáforo** en vez de una lista para revisar a mano: rojo, ámbar o verde, con actualización automática cada 30 segundos.
+- **Solo turno de día**, como en el contrato real del caso.
+
+**Validación:** un set de pruebas automáticas con datos inventados recorre todo el flujo:
+
+1. El administrador publica el Excel.
+2. Tres inspectores firman y uno no.
+3. El semáforo pasa de ámbar a verde.
+4. El jefe consolida y se envía el correo real.
+
+Resultado: 30 de 30 comprobaciones bien. Las pruebas encontraron 4 errores que se corrigieron antes de publicar.
