@@ -15,6 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { db } from "./db";
 import { hayRed } from "./nativo";
 import { BUCKET_FOTOS, BUCKET_REPORTES, obtenerSupabase, rutaFoto, rutaPdfReporte } from "./supabase";
+import { aFilaContrato, aFilaEmpresa, aFilaFrente, aFilaUsuario } from "./catalogo";
 import type {
   Alerta, Area, AreaTurno, Contrato, Empresa, Envio, Fotografia, Registro, Reporte, RolTurno, Usuario,
 } from "./types";
@@ -146,12 +147,35 @@ async function subirCatalogos(sb: SupabaseClient): Promise<void> {
   ]);
   const huella = huellaDe([usuarios, contratos, empresas, areas, roles]);
   if ((await db.ajustes.get(CLAVE_CATALOGOS))?.valor === huella) return;
-  await upsert(sb, "usuario", usuarios.map(aUsuario));
-  await upsert(sb, "contrato", contratos.map(aContrato));
-  await upsert(sb, "empresa", empresas.map(aEmpresa));
-  await upsert(sb, "frente", areas.map(aFrente));
+  await asegurarCatalogoRemoto(sb, { usuarios, contratos, empresas, areas });
   await upsert(sb, "rol_turno", roles.map(aRolTurno));
   await db.ajustes.put({ clave: CLAVE_CATALOGOS, valor: huella });
+}
+
+/**
+ * Catálogo remoto (semana 8): antes de subir reportes, crea en Supabase el contrato, los usuarios,
+ * las empresas y las áreas que aún no existan (las llaves foráneas lo exigen). Solo inserta lo que
+ * falta (`on conflict do nothing`): lo que ya está arriba lo maneja el administrador al publicar el
+ * catálogo (lib/catalogo.ts), y un teléfono con el catálogo desactualizado no debe pisarlo
+ * (por ejemplo, volver a dejar vigente un área dada de baja).
+ */
+async function asegurarCatalogoRemoto(
+  sb: SupabaseClient,
+  local: { usuarios: Usuario[]; contratos: Contrato[]; empresas: Empresa[]; areas: Area[] },
+): Promise<void> {
+  const contratoDe = (contratoId?: string) => contratoId ?? (local.contratos.length === 1 ? local.contratos[0].id : undefined);
+  const pasos: [string, Fila[]][] = [
+    ["contrato", local.contratos.map(aFilaContrato)],
+    ["usuario", local.usuarios.map((u) => aFilaUsuario(u, contratoDe(u.contratoId)))],
+    ["empresa", local.empresas.map(aFilaEmpresa)],
+    ["frente", local.areas.map(aFilaFrente)],
+  ];
+  for (const [tabla, filas] of pasos) {
+    for (let i = 0; i < filas.length; i += 200) {
+      const { error } = await sb.from(tabla).upsert(filas.slice(i, i + 200), { onConflict: "id", ignoreDuplicates: true });
+      if (error) throw error;
+    }
+  }
 }
 
 // ───────────────────────── Tablas con `sincronizadoEn` ─────────────────────────
@@ -187,7 +211,16 @@ async function marcar<T extends ConSync>(local: import("dexie").Table<T, string>
 
 async function subirAreasTurno(sb: SupabaseClient, reportesCambiados: string[]): Promise<void> {
   if (!reportesCambiados.length) return;
-  const ats = await db.areasTurno.where("reporteId").anyOf(reportesCambiados).toArray();
+  // Solo hijos de reportes que ya existen arriba: el historial de demostración se siembra marcado
+  // como sincronizado y nunca se sube, así que sus áreas del turno violarían la llave foránea.
+  const remotos: string[] = [];
+  for (let i = 0; i < reportesCambiados.length; i += 100) {
+    const { data, error } = await sb.from("reporte").select("id").in("id", reportesCambiados.slice(i, i + 100));
+    if (error) throw error;
+    for (const r of data ?? []) remotos.push(r.id as string);
+  }
+  if (!remotos.length) return;
+  const ats = await db.areasTurno.where("reporteId").anyOf(remotos).toArray();
   const subidos = await upsert(sb, "area_turno", ats.map(aAreaTurno));
   if (subidos.size < ats.length) throw new Error(`${ats.length - subidos.size} áreas del turno no se pudieron subir`);
 }
@@ -328,12 +361,46 @@ const aRolTurno = (r: RolTurno): Fila => ({
   dias_descanso: r.diasDescanso, fecha_inicio: r.fechaInicio,
 });
 
+/**
+ * «Entregado al jefe de turno» no es un estado de la base remota (migración 0002, «solo agrega»):
+ * en Supabase la parte entregada queda `aprobado` con `entregado_en` lleno. Si el inspector vuelve
+ * a editar (el reporte pasa a borrador), `entregado_en` se limpia y la parte deja de estar entregada.
+ */
 const aReporte = (r: Reporte): Fila => ({
   id: r.id, contrato_id: r.contratoId, fecha: r.fecha, turno: r.turno, correlativo: r.correlativo,
-  elaborado_por: r.elaboradoPor, clima_turno: r.climaTurno, clima_proyeccion: r.climaProyeccion, estado: r.estado,
+  elaborado_por: r.elaboradoPor, clima_turno: r.climaTurno, clima_proyeccion: r.climaProyeccion,
+  estado: estadoRemoto(r.estado),
+  entregado_en: r.estado === "entregado" ? r.entregadoEn ?? new Date().toISOString() : null,
   resumen_turno: nulo(r.resumenTurno), hora_generacion: nulo(r.horaGeneracion), hora_aprobacion: nulo(r.horaAprobacion),
   aprobado_por: nulo(r.aprobadoPor), sincronizado_en: new Date().toISOString(),
 });
+
+/** Estado que acepta la regla `reporte_estado_check` remota (no incluye «entregado»). */
+export function estadoRemoto(estado: Reporte["estado"]): Exclude<Reporte["estado"], "entregado"> {
+  return estado === "entregado" ? "aprobado" : estado;
+}
+
+/**
+ * Lo que falta subir de un reporte (para la pantalla de entrega): el reporte, sus registros,
+ * alertas y fotos sin `sincronizadoEn`, y el PDF sin ruta remota. 0 = la parte ya está en la nube.
+ */
+export async function pendientesDeReporte(reporteId: string): Promise<number> {
+  if (typeof window === "undefined" || !db) return 0;
+  const [reporte, pdf, regs, als] = await Promise.all([
+    db.reportes.get(reporteId),
+    db.pdfs.get(reporteId),
+    db.registros.where("reporteId").equals(reporteId).toArray(),
+    db.alertas.where("reporteId").equals(reporteId).toArray(),
+  ]);
+  const ids = regs.map((r) => r.id), idsAl = als.map((a) => a.id);
+  const fotos = [
+    ...(ids.length ? await db.fotografias.where("registroId").anyOf(ids).toArray() : []),
+    ...(idsAl.length ? await db.fotografias.where("alertaId").anyOf(idsAl).toArray() : []),
+  ];
+  return (reporte && !reporte.sincronizadoEn ? 1 : 0) + (pdf && !pdf.urlRemota ? 1 : 0) +
+    regs.filter((r) => !r.sincronizadoEn).length + als.filter((a) => !a.sincronizadoEn).length +
+    fotos.filter((f) => !f.sincronizadoEn).length;
+}
 
 const aAreaTurno = (a: AreaTurno): Fila => ({
   id: a.id, reporte_id: a.reporteId, frente_id: a.areaId, empresa_id: a.empresaId, orden: a.orden, agregada_en: a.agregadaEn,

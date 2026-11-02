@@ -1,6 +1,6 @@
 # Manual de instalación de Bitácora ITO en Android
 
-**Versión:** borrador 1 · 20 de octubre de 2026
+**Versión:** 2 · 30 de octubre de 2026
 **Para:** inspectores técnicos de obra y cualquier persona que pruebe la aplicación.
 **Necesitas:** un teléfono Android 7.0 o más reciente, unos 30 MB libres y conexión a internet solo para descargar el archivo.
 

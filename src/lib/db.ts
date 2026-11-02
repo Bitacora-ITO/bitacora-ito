@@ -2,7 +2,7 @@
 // Funciona sin señal; lib/sync.ts sube a Supabase lo pendiente cuando hay red.
 import Dexie, { type Table } from "dexie";
 import type {
-  Ajuste, Alerta, Area, AreaTurno, Contrato, Empresa, Envio, Fotografia,
+  Ajuste, Alerta, Area, AreaTurno, Consolidado, Contrato, Empresa, Envio, Fotografia,
   PdfReporte, Registro, Reporte, RolTurno, Usuario,
 } from "./types";
 
@@ -20,6 +20,7 @@ export class BitacoraDB extends Dexie {
   envios!: Table<Envio, string>;
   rolesTurno!: Table<RolTurno, string>;
   ajustes!: Table<Ajuste, string>;
+  consolidados!: Table<Consolidado, string>;
 
   constructor() {
     super("bitacora-ito");
@@ -37,6 +38,10 @@ export class BitacoraDB extends Dexie {
       envios: "id, reporteId, estado",
       rolesTurno: "id, usuarioId",
       ajustes: "clave",
+    });
+    // Semana 8: consolidación del jefe de turno.
+    this.version(2).stores({
+      consolidados: "id, [contratoId+fecha+turno], estado",
     });
   }
 }

@@ -1,5 +1,9 @@
-// Datos de demostración: contrato 4600026893, 14 áreas, 4 empresas, rol 7x7 relativo a hoy,
+// Datos de demostración: contrato 4600026893, 14 áreas, 4 empresas, 5 usuarios, rol 7x7 relativo a hoy,
 // unas 6 semanas de reportes enviados (con 2 días no entregados) y el reporte de hoy como en 01a.
+//
+// El catálogo (contrato, áreas, empresas y usuarios) sale de `catalogoBase()` con ids estables
+// (UUID derivados del nombre): todos los teléfonos comparten los mismos ids, como lo necesitan la
+// consolidación del jefe de turno y las llaves foráneas de Supabase.
 import { ahoraISO, db, hoyLocal, nuevoId } from "./db";
 import type {
   Alerta, Area, AreaTurno, Clima, ColumnaAlerta, Contrato, Criticidad, Empresa, Envio,
@@ -8,91 +12,103 @@ import type {
 import { CLAVES, formatoCorrelativo } from "./repositorio";
 import { instante, sumarDias } from "./fechas";
 import { esDiaTrabajo } from "./rol";
+import { catalogoBase, idEstable } from "./catalogo-excel";
 
-/** Si cambia, la app borra y vuelve a sembrar al abrirse. */
-export const SEMILLA_VERSION = "2026-10-20.2";
+/**
+ * Si cambia, la app borra y vuelve a sembrar al abrirse, salvo desde las versiones de
+ * `VERSIONES_MIGRABLES`: esas solo cambian los ids del catálogo y conservan lo registrado.
+ */
+export const SEMILLA_VERSION = "2026-10-30.1";
+/** Versiones con los ids antiguos («u-orellana», «a-01»…) que se migran sin borrar el historial. */
+const VERSIONES_MIGRABLES = ["2026-10-20.2"];
 
-const USUARIO_ID = "u-orellana";
-const CONTRATO_ID = "c-4600026893";
-const CORRELATIVO_HOY = 1972;
-const DESTINATARIO_DEFECTO = "inspeccion@mandante.cl";
+const CATALOGO = catalogoBase();
+const CONTRATO_ID = CATALOGO.contrato.id;
+const usuarioId = (nombre: string) => CATALOGO.usuarios.find((u) => u.nombre === nombre)!.id;
+const USUARIO_ID = usuarioId("Jorge Orellana S.");
+const CORRELATIVO_HOY = CATALOGO.contrato.ultimoCorrelativo;
+const DESTINATARIO_DEFECTO = CATALOGO.contrato.destinatarios[0];
 const GPS = { latitud: -22.4512, longitud: -68.9231 };
 
-const E = { tecnasic: "e1-tecnasic", geoinyecta: "e2-geoinyecta", idiem: "e3-idiem", oocc: "e4-oocc" } as const;
+const empresaId = (nombre: string) => CATALOGO.empresas.find((e) => e.nombre === nombre)!.id;
+const E = {
+  tecnasic: empresaId("TECNASIC"), geoinyecta: empresaId("GEOINYECTA"), idiem: empresaId("IDIEM"), oocc: empresaId("OOCC"),
+} as const;
 
-const EMPRESAS: Empresa[] = [
-  { id: E.tecnasic, contratoId: CONTRATO_ID, nombre: "TECNASIC", tipo: "contratista" },
-  { id: E.geoinyecta, contratoId: CONTRATO_ID, nombre: "GEOINYECTA", tipo: "contratista" },
-  { id: E.idiem, contratoId: CONTRATO_ID, nombre: "IDIEM", tipo: "laboratorio" },
-  { id: E.oocc, contratoId: CONTRATO_ID, nombre: "OOCC", tipo: "obras_civiles" },
-];
+const EMPRESAS: Empresa[] = CATALOGO.empresas;
 
-interface AreaSemilla { id: string; nombre: string; empresa: string; textos: string[] }
+/** Id del área n.º `n` (1 a 14) del catálogo, en el orden de otrosdoc/Áreas.xlsx. */
+const A = (n: number) => CATALOGO.areas[n - 1].id;
+
+/** Id estable del rol 7x7 de un usuario. */
+const idRol = (usuario: string) => idEstable("rol", CONTRATO_ID, usuario);
+
+interface AreaSemilla { id: string; empresa: string; textos: string[] }
 
 // Textos en el estilo del reporte real REV1 del 27-09-2026 (Pk, cotas, capas y liberaciones dentro del texto).
 const AREAS: AreaSemilla[] = [
-  { id: "a-01", nombre: "Vertedero Morning Glory", empresa: E.geoinyecta, textos: [
+  { id: A(1), empresa: E.geoinyecta, textos: [
     "Se realiza perforación de pozos de consolidación de las corridas E (2-6-7) y D (1-2-3-4-5), con 8 pozos; total de metros perforados 64 m.",
     "Inyección de lechada en pozos de consolidación corrida D (10-11-12), presión de cierre 6 bar.\nSe realiza orden y aseo sector pique.",
     "Perforación de pozos de drenaje en túnel evacuador, corrida F (1 al 4), total 36 m.",
     "Se realiza lavado de pozos y prueba de agua Lugeon en corrida E, tramos 1 a 3.",
   ] },
-  { id: "a-02", nombre: "Acceso a obra de captación", empresa: E.oocc, textos: [
+  { id: A(2), empresa: E.oocc, textos: [
     "Perfilado y compactación de base granular en camino de acceso entre Pk 0+040 y 0+120.",
     "Instalación de barrera de contención tipo New Jersey en curva del Pk 0+210, 14 unidades.",
     "Riego de supresión de polvo y bacheo de carpeta en acceso a obra de captación.",
   ] },
-  { id: "a-03", nombre: "Fortificación Tramo B", empresa: E.geoinyecta, textos: [
+  { id: A(3), empresa: E.geoinyecta, textos: [
     "Instalación de pernos helicoidales de 2,4 m en caja derecha entre Pk 1+215 y 1+228, 22 pernos.",
     "Proyección de shotcrete de 5 cm con fibra en bóveda entre Pk 1+228 y 1+236; se toman probetas para IDIEM.",
     "Colocación de malla bizcocho y segunda capa de shotcrete en sector de sobreexcavación Pk 1+240.",
   ] },
-  { id: "a-04", nombre: "Peralte Muro Sotelo", empresa: E.tecnasic, textos: [
+  { id: A(4), empresa: E.tecnasic, textos: [
     "Se realiza extendido y compactación de material 1A capa 17 cota 253,1 m entre los Pk 18 al Pk 30, total 12 m, liberada por parte de calidad, topografía y laboratorio.",
     "Se realiza liberación de capa 16 cota 252,8 m entre los Pk 17 al Pk 29, total 12 m.\nSe realiza corte de talud y carguío en muro Sotelo para posterior endentado 1A atraque izquierdo.",
     "Se realiza preparación y extendido de material 1A en sector zanja cortafuga 4ta capa 30 cm entre los Pk 89 al Pk 110 cota 233,70.",
     "Se realiza excavación de zanja anclaje pata muro Sotelo entre los Pk 160 al Pk 133, total 27 m.",
   ] },
-  { id: "a-05", nombre: "Instrumentación geotécnica Muro Sotelo", empresa: E.idiem, textos: [
+  { id: A(5), empresa: E.idiem, textos: [
     "Lectura de piezómetros de cuerda vibrante PZ-03 a PZ-07; sin variaciones relevantes respecto de la lectura anterior.",
     "Instalación de inclinómetro INC-04 en Pk 0+120, profundidad 18 m, y lectura de referencia.",
     "Control topográfico de prismas de monitoreo P-01 a P-09; desplazamientos dentro de rango.",
   ] },
-  { id: "a-06", nombre: "Torre de Captación", empresa: E.tecnasic, textos: [
+  { id: A(6), empresa: E.tecnasic, textos: [
     "Verticalización de estructuras entre ejes 8-9 de la torre.\nMontaje de soporte y tablero 3531-TDF-801.",
     "Montaje CAG de 1\" en TDF-801.\nSoldadura y esmerilado de ventanas de soporte SP-015 bastidor.",
     "Touch up de pintura de soporte eléctrico.\nTorque de pernos de anclaje en plataforma nivel 3.",
   ] },
-  { id: "a-07", nombre: "Túnel PAMo", empresa: E.tecnasic, textos: [
+  { id: A(7), empresa: E.tecnasic, textos: [
     "Limpieza de saca en frente de avance y acuñadura mecanizada entre Pk 0+310 y 0+318.",
     "Instalación de ventilación secundaria, ducto de 900 mm, 30 m.",
   ] },
-  { id: "a-08", nombre: "Sistema de Manejo de Aguas", empresa: E.oocc, textos: [
+  { id: A(8), empresa: E.oocc, textos: [
     "Excavación y emplantillado para fundación de machones M1a, M1b y M1c de cañería de 6\".",
     "Hormigonado de pedestal fundación F5 en piscina SMA, 2,4 m³ H-30.",
     "Fabricación de camellones en recorrido de cañería de 6\" y cruce de camino Pk 0+060.",
   ] },
-  { id: "a-09", nombre: "Mentidero", empresa: E.oocc, textos: [
+  { id: A(9), empresa: E.oocc, textos: [
     "Construcción de cuneta revestida en sector Mentidero, 18 m.",
     "Relleno y compactación de zanja de cañería en capas de 20 cm, 3 capas liberadas.",
   ] },
-  { id: "a-10", nombre: "La Bodega", empresa: E.oocc, textos: [
+  { id: A(10), empresa: E.oocc, textos: [
     "Recepción y acopio de cañería HDPE de 6\" en patio de La Bodega, 24 tiras.",
     "Ordenamiento de acopios y señalización de zona de materiales peligrosos.",
   ] },
-  { id: "a-11", nombre: "Tramo A", empresa: E.geoinyecta, textos: [
+  { id: A(11), empresa: E.geoinyecta, textos: [
     "Perforación de barrenos de drenaje en caja izquierda Tramo A, 6 barrenos de 6 m.",
     "Inyección de contacto en Pk 0+880 a 0+896, consumo 1,2 m³ de lechada.",
   ] },
-  { id: "a-12", nombre: "Tramo B", empresa: E.geoinyecta, textos: [
+  { id: A(12), empresa: E.geoinyecta, textos: [
     "Mapeo geológico del frente Pk 1+236 y definición de soporte tipo III.",
     "Instalación de marcos reticulados en zona de falla Pk 1+242, 3 marcos.",
   ] },
-  { id: "a-13", nombre: "Traucalón", empresa: E.tecnasic, textos: [
-    "Hormigonado de losa de fundación de cámara Traucalón, 6,5 m³ H-30.",
+  { id: A(13), empresa: E.tecnasic, textos: [
+    "Hormigonado de losa de fundación de cámara Traucalén, 6,5 m³ H-30.",
     "Moldaje y enfierradura de muros de cámara, eje A al C.",
   ] },
-  { id: "a-14", nombre: "Sondajes", empresa: E.idiem, textos: [
+  { id: A(14), empresa: E.idiem, textos: [
     "Sondaje S3-MP: ensayo SCPTu hasta 14 m.",
     "Calicatas OA-13 (Macrogranulometría): se alcanza 1,40 m de profundidad, se realiza muestreo, descripción y cierre de prospección.",
     "Sondaje S5-MS: recuperación de testigos entre 22 y 31 m, RQD 64 %.",
@@ -100,13 +116,13 @@ const AREAS: AreaSemilla[] = [
 ];
 
 const ALERTAS_TEXTO: { columna: ColumnaAlerta; empresa: string; criticidad: Criticidad; texto: string; area?: string }[] = [
-  { columna: "construccion", empresa: E.tecnasic, criticidad: "media", area: "a-06", texto: "Acopio de material sin señalética en el acceso a la torre." },
-  { columna: "laboratorio", empresa: E.idiem, criticidad: "media", area: "a-04", texto: "Densidad in situ de capa 17 bajo el 95 % del Proctor modificado en Pk 24. Se solicita reprocesar y repetir el ensayo." },
-  { columna: "construccion", empresa: E.tecnasic, criticidad: "alta", area: "a-04", texto: "En zanja de anclaje ZCF los rellenos de las últimas 2 capas no presentan la misma consistencia." },
-  { columna: "topografia", empresa: E.tecnasic, criticidad: "baja", area: "a-04", texto: "Estaca de referencia del Pk 120 removida; se solicita reponer antes del control de capa." },
-  { columna: "interferencia", empresa: E.oocc, criticidad: "media", area: "a-08", texto: "Camión aljibe interfiere el frente de excavación de machones; se coordina horario de riego." },
-  { columna: "construccion", empresa: E.geoinyecta, criticidad: "alta", area: "a-03", texto: "Desprendimiento de roca en caja derecha Pk 1+230 tras la tronadura. Se aísla el sector y se refuerza con pernos." },
-  { columna: "laboratorio", empresa: E.idiem, criticidad: "baja", area: "a-03", texto: "Probetas de shotcrete del Pk 1+228 sin rotular; se rotulan en terreno." },
+  { columna: "construccion", empresa: E.tecnasic, criticidad: "media", area: A(6), texto: "Acopio de material sin señalética en el acceso a la torre." },
+  { columna: "laboratorio", empresa: E.idiem, criticidad: "media", area: A(4), texto: "Densidad in situ de capa 17 bajo el 95 % del Proctor modificado en Pk 24. Se solicita reprocesar y repetir el ensayo." },
+  { columna: "construccion", empresa: E.tecnasic, criticidad: "alta", area: A(4), texto: "En zanja de anclaje ZCF los rellenos de las últimas 2 capas no presentan la misma consistencia." },
+  { columna: "topografia", empresa: E.tecnasic, criticidad: "baja", area: A(4), texto: "Estaca de referencia del Pk 120 removida; se solicita reponer antes del control de capa." },
+  { columna: "interferencia", empresa: E.oocc, criticidad: "media", area: A(8), texto: "Camión aljibe interfiere el frente de excavación de machones; se coordina horario de riego." },
+  { columna: "construccion", empresa: E.geoinyecta, criticidad: "alta", area: A(3), texto: "Desprendimiento de roca en caja derecha Pk 1+230 tras la tronadura. Se aísla el sector y se refuerza con pernos." },
+  { columna: "laboratorio", empresa: E.idiem, criticidad: "baja", area: A(3), texto: "Probetas de shotcrete del Pk 1+228 sin rotular; se rotulan en terreno." },
   { columna: "interferencia", empresa: E.tecnasic, criticidad: "baja", texto: "Sin actividades en Túnel PAMo, cámara de carga y piscina SMA por corte de energía programado." },
 ];
 
@@ -217,6 +233,10 @@ export function sembrarSiFalta(): Promise<void> {
 async function sembrarSiFaltaInterno() {
   const version = (await db.ajustes.get(CLAVES.semilla))?.valor;
   if (version === SEMILLA_VERSION && (await db.contratos.count()) > 0) return;
+  if (version && VERSIONES_MIGRABLES.includes(version) && (await db.contratos.count()) > 0) {
+    await migrarIdsCatalogo();
+    return;
+  }
   const destinatario = (await db.ajustes.get(CLAVES.destinatario))?.valor;
   await db.transaction("rw", db.tables, async () => { await Promise.all(db.tables.map((t) => t.clear())); });
   await sembrar(destinatario);
@@ -229,7 +249,8 @@ export async function sembrar(destinatario?: string): Promise<void> {
   const rnd = aleatorio(20261020);
 
   // Rol 7x7: hoy es el 3.er día de trabajo.
-  const rol: RolTurno = { id: "rol-orellana", usuarioId: USUARIO_ID, contratoId: CONTRATO_ID, diasTrabajo: 7, diasDescanso: 7, fechaInicio: sumarDias(hoy, -2) };
+  const rol: RolTurno = { id: idRol("Jorge Orellana S."), usuarioId: USUARIO_ID, contratoId: CONTRATO_ID, diasTrabajo: 7, diasDescanso: 7, fechaInicio: sumarDias(hoy, -2) };
+  const roles = rolesDeTerreno(rol);
 
   // Días de trabajo de las últimas ~6 semanas (3 ciclos anteriores completos + 2 días del actual).
   const plan: DiaPlan[] = [];
@@ -247,26 +268,13 @@ export async function sembrar(destinatario?: string): Promise<void> {
   const conReporte = plan.filter((p) => p.tipo !== "sin_reporte").length;
   let correlativo = CORRELATIVO_HOY - conReporte; // el de hoy queda en CORRELATIVO_HOY
 
-  const contrato: Contrato = {
-    id: CONTRATO_ID,
-    nombre: "Servicio de Inspección Técnica de Obras y Apoyo a la Construcción de Carén",
-    numero: "4600026893",
-    mandante: "Mandante del contrato",
-    codigoProyecto: "4600026893-8211-FRMCS-00001",
-    codigoInterno: "JEJ-664-CT-INF-002",
-    revisionFormato: "1",
-    fechaFormato: "02-07-2024",
-    prefijoCorrelativo: "4600026893-8211-INDCS-",
-    ultimoCorrelativo: CORRELATIVO_HOY,
-    destinatarios: [destinatario ?? DESTINATARIO_DEFECTO],
-    horaCierreTurnoDia: "19:00",
-  };
-  const usuario: Usuario = { id: USUARIO_ID, nombre: "Jorge Orellana S.", correo: "jorellana@empresa.cl", rol: "inspector" };
-  const areas: Area[] = AREAS.map((a, i) => ({ id: a.id, contratoId: CONTRATO_ID, nombre: a.nombre, orden: i + 1, vigente: true }));
+  const contrato: Contrato = { ...CATALOGO.contrato, ultimoCorrelativo: CORRELATIVO_HOY, destinatarios: [destinatario ?? DESTINATARIO_DEFECTO] };
+  const usuarios: Usuario[] = CATALOGO.usuarios;
+  const areas: Area[] = CATALOGO.areas;
 
   const lote: Lote = { reportes: [], areasTurno: [], registros: [], alertas: [], fotografias: [], envios: [] };
   const climas: Clima[] = ["despejado", "despejado", "despejado", "nublado", "despejado", "nublado", "lluvia"];
-  const fijas = ["a-04", "a-06", "a-01"];
+  const fijas = [A(4), A(6), A(1)];
   const resto = AREAS.map((a) => a.id).filter((id) => !fijas.includes(id));
 
   for (const dia of plan) {
@@ -310,7 +318,7 @@ export async function sembrar(destinatario?: string): Promise<void> {
         for (let k = 0; k < nFotos; k++) {
           lote.fotografias.push({
             id: nuevoId(), registroId: reg.id, orden: k + 1,
-            imagen: fotos[areaId === "a-01" && k === 0 && rnd() < 0.5 ? 2 : FOTOS_CAMPO[Math.floor(rnd() * FOTOS_CAMPO.length)]],
+            imagen: fotos[areaId === A(1) && k === 0 && rnd() < 0.5 ? 2 : FOTOS_CAMPO[Math.floor(rnd() * FOTOS_CAMPO.length)]],
             capturadaEn: reg.registradoEn, latitud: reg.latitud, longitud: reg.longitud, sincronizadoEn: ahora,
           });
         }
@@ -344,11 +352,11 @@ export async function sembrar(destinatario?: string): Promise<void> {
   sembrarHoy(lote, hoy, contrato, fotos, ahora);
 
   await db.transaction("rw", db.tables, async () => {
-    await db.usuarios.add(usuario);
+    await db.usuarios.bulkAdd(usuarios);
     await db.contratos.add(contrato);
     await db.empresas.bulkAdd(EMPRESAS);
     await db.areas.bulkAdd(areas);
-    await db.rolesTurno.add(rol);
+    await db.rolesTurno.bulkAdd(roles);
     await db.reportes.bulkAdd(lote.reportes);
     await db.areasTurno.bulkAdd(lote.areasTurno);
     await db.registros.bulkAdd(lote.registros);
@@ -373,14 +381,14 @@ function sembrarHoy(lote: Lote, hoy: string, contrato: Contrato, fotos: Blob[], 
   };
   lote.reportes.push(reporte);
   const filas: { area: string; empresa: string; hora?: string; texto?: string; fotos?: number[] }[] = [
-    { area: "a-01", empresa: E.geoinyecta, hora: "08:40", fotos: [2, 0],
+    { area: A(1), empresa: E.geoinyecta, hora: "08:40", fotos: [2, 0],
       texto: "Se realiza perforación de pozos de consolidación de las corridas E (2-6-7) y D (1-2-3-4-5-10-11-12) con 11 pozos; total de metros perforados 88 m." },
-    { area: "a-04", empresa: E.tecnasic },
-    { area: "a-06", empresa: E.tecnasic, hora: "11:15", fotos: [3],
+    { area: A(4), empresa: E.tecnasic },
+    { area: A(6), empresa: E.tecnasic, hora: "11:15", fotos: [3],
       texto: "Verticalización de estructuras entre ejes 8-9 de la torre.\nMontaje de soporte y tablero 3531-TDF-801.\nMontaje CAG de 1\" en TDF-801." },
-    { area: "a-08", empresa: E.oocc, hora: "14:02", fotos: [1, 4],
+    { area: A(8), empresa: E.oocc, hora: "14:02", fotos: [1, 4],
       texto: "Excavación y emplantillado para fundación de machones M1a, M1b y M1c de cañería de 6\".\nFabricación de camellones en recorrido de cañería de 6\"." },
-    { area: "a-14", empresa: E.idiem, hora: "15:30" },
+    { area: A(14), empresa: E.idiem, hora: "15:30" },
   ];
   const ats: Record<string, string> = {};
   filas.forEach((f, i) => {
@@ -400,7 +408,7 @@ function sembrarHoy(lote: Lote, hoy: string, contrato: Contrato, fotos: Blob[], 
     }));
   });
   const alta: Alerta = {
-    id: nuevoId(), reporteId: reporte.id, columna: "construccion", empresaId: E.tecnasic, areaTurnoId: ats["a-06"],
+    id: nuevoId(), reporteId: reporte.id, columna: "construccion", empresaId: E.tecnasic, areaTurnoId: ats[A(6)],
     descripcion: "Trabajos en altura en eje 8-9 de la torre sin línea de vida instalada en el tramo superior. Se detiene la actividad hasta regularizar.",
     criticidad: "alta", registradoEn: instante(hoy, "11:30"), sincronizadoEn: ahora,
   };
@@ -411,6 +419,61 @@ function sembrarHoy(lote: Lote, hoy: string, contrato: Contrato, fotos: Blob[], 
   };
   lote.alertas.push(alta, media);
   lote.fotografias.push({ id: nuevoId(), alertaId: alta.id, imagen: fotos[4], orden: 1, capturadaEn: alta.registradoEn, sincronizadoEn: ahora });
+}
+
+/** Rol 7x7 de los usuarios de terreno (inspectores y jefe de turno), copiando el del inspector principal. */
+function rolesDeTerreno(base: RolTurno): RolTurno[] {
+  return [base, ...CATALOGO.usuarios
+    .filter((u) => u.id !== base.usuarioId && u.rol !== "admin")
+    .map((u) => ({ ...base, id: idRol(u.nombre), usuarioId: u.id }))];
+}
+
+/**
+ * Pasa el catálogo de la semilla anterior («u-orellana», «c-4600026893», «e1-tecnasic», «a-01»…)
+ * a los ids estables y actualiza las referencias: lo registrado en el teléfono se conserva.
+ */
+async function migrarIdsCatalogo(): Promise<void> {
+  const mapa: Record<string, string> = {
+    "u-orellana": USUARIO_ID, "c-4600026893": CONTRATO_ID, "rol-orellana": idRol("Jorge Orellana S."),
+    "e1-tecnasic": E.tecnasic, "e2-geoinyecta": E.geoinyecta, "e3-idiem": E.idiem, "e4-oocc": E.oocc,
+  };
+  for (let n = 1; n <= 14; n++) mapa[`a-${String(n).padStart(2, "0")}`] = A(n);
+  const m = <T extends string | undefined>(id: T): T => (id && mapa[id] ? mapa[id] : id) as T;
+  const viejos = Object.keys(mapa);
+
+  await db.transaction("rw", db.tables, async () => {
+    const contratoViejo = await db.contratos.get("c-4600026893");
+    const rolViejo = await db.rolesTurno.get("rol-orellana");
+    await Promise.all([
+      db.usuarios.bulkDelete(viejos), db.contratos.bulkDelete(viejos), db.empresas.bulkDelete(viejos),
+      db.areas.bulkDelete(viejos), db.rolesTurno.bulkDelete(viejos),
+    ]);
+    await db.usuarios.bulkPut(CATALOGO.usuarios);
+    await db.contratos.put({
+      ...CATALOGO.contrato,
+      ultimoCorrelativo: Math.max(contratoViejo?.ultimoCorrelativo ?? 0, CORRELATIVO_HOY),
+      destinatarios: contratoViejo?.destinatarios?.length ? contratoViejo.destinatarios : CATALOGO.contrato.destinatarios,
+    });
+    await db.empresas.bulkPut(EMPRESAS);
+    await db.areas.bulkPut(CATALOGO.areas);
+    const base: RolTurno = rolViejo
+      ? { ...rolViejo, id: idRol("Jorge Orellana S."), usuarioId: USUARIO_ID, contratoId: CONTRATO_ID }
+      : { id: idRol("Jorge Orellana S."), usuarioId: USUARIO_ID, contratoId: CONTRATO_ID, diasTrabajo: 7, diasDescanso: 7, fechaInicio: sumarDias(hoyLocal(), -2) };
+    await db.rolesTurno.bulkPut(rolesDeTerreno(base));
+
+    await db.reportes.toCollection().modify((r) => {
+      r.contratoId = m(r.contratoId); r.elaboradoPor = m(r.elaboradoPor); r.aprobadoPor = m(r.aprobadoPor);
+    });
+    await db.areasTurno.toCollection().modify((a) => { a.areaId = m(a.areaId); a.empresaId = m(a.empresaId); });
+    await db.alertas.toCollection().modify((a) => { a.empresaId = m(a.empresaId); });
+    await db.envios.toCollection().modify((e) => { e.enviadoPor = m(e.enviadoPor); });
+    await db.consolidados.toCollection().modify((c) => { c.contratoId = m(c.contratoId); c.consolidadoPor = m(c.consolidadoPor); });
+    for (const clave of [CLAVES.usuario, CLAVES.contrato]) {
+      const a = await db.ajustes.get(clave);
+      if (a) await db.ajustes.put({ clave, valor: m(a.valor) });
+    }
+    await db.ajustes.put({ clave: CLAVES.semilla, valor: SEMILLA_VERSION });
+  });
 }
 
 /** «Reiniciar datos de demostración»: borra todo y vuelve a sembrar, conservando el destinatario de prueba. */

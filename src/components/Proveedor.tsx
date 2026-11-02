@@ -1,6 +1,8 @@
 "use client";
 // Arranque de la app: siembra los datos de demostración, crea el reporte de hoy (regla 1),
 // procesa la cola de envíos, sincroniza y vuelve a intentarlo cada vez que vuelve la señal.
+// También revisa si hay un catálogo nuevo (al abrir y al volver la red) y, al primer uso,
+// pide elegir quién usa el teléfono.
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sembrarSiFalta } from "@/lib/seed";
@@ -8,6 +10,8 @@ import { asegurarReporteHoy, obtenerContexto, type Contexto } from "@/lib/reposi
 import { alCambiarRed, hayRed } from "@/lib/nativo";
 import { procesarCola } from "@/lib/envio";
 import { contarPendientes, sincronizar } from "@/lib/sync";
+import { sesionElegida, verificarCatalogo } from "@/lib/catalogo";
+import ElegirIdentidad from "./catalogo/ElegirIdentidad";
 import { Cargando } from "./ui";
 import s from "./ui.module.css";
 
@@ -27,7 +31,7 @@ interface EstadoApp {
 
 const Ctx = createContext<EstadoApp | null>(null);
 
-const RUTAS = ["/", "/registrar", "/alerta", "/borrador", "/vista-previa", "/enviar", "/agregar-area", "/historial", "/historial/dia", "/historial/inicio"];
+const RUTAS = ["/", "/registrar", "/alerta", "/borrador", "/vista-previa", "/enviar", "/agregar-area", "/historial", "/historial/dia", "/historial/inicio", "/admin", "/jefe"];
 
 export function useApp(): EstadoApp {
   const v = useContext(Ctx);
@@ -43,6 +47,7 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
   const [ultimaSync, setUltimaSync] = useState<string>();
   const [errorSync, setErrorSync] = useState<string>();
   const [sincronizando, setSincronizando] = useState(false);
+  const [pedirIdentidad, setPedirIdentidad] = useState(false);
   const corriendo = useRef(false);
   const router = useRouter();
 
@@ -57,6 +62,7 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
     const reporte = await asegurarReporteHoy();
     const contexto = await obtenerContexto();
     setBase({ contexto, reporteHoyId: reporte.id });
+    setPedirIdentidad(!(await sesionElegida()));
   }, []);
 
   const refrescar = useCallback(() => {
@@ -75,6 +81,7 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
           else if (!r.error && r.pendientes === 0) setUltimaSync(new Date().toISOString());
         }
         setPendientes(await contarPendientes());
+        await verificarCatalogo(); // deja la versión remota en `ajustes` (aviso «Hay un catálogo nuevo»); no lanza errores
       } catch (e) {
         setErrorSync(mensaje(e));
       } finally {
@@ -122,6 +129,7 @@ export default function Proveedor({ children }: { children: React.ReactNode }) {
     );
   }
   if (!base) return <Cargando texto="Preparando el turno…" />;
+  if (pedirIdentidad) return <ElegirIdentidad alElegir={async () => { await recargar(); refrescar(); }} />;
 
   return (
     <Ctx.Provider value={{ ...base, conectado, pendientes, ultimaSync, errorSync, sincronizando, refrescar, recargar }}>
