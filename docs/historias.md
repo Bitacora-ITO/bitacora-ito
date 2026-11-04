@@ -1,7 +1,7 @@
 # Historias de usuario y criterios de aceptación
 
 **Proyecto:** Bitácora - ITO
-**Semana:** 4 (actualizado en la semana 6, versión 2)
+**Semana:** 4 (actualizado en la semana 6, versión 2, y en la semana 8: consolidación por el jefe de turno)
 **Fuente:** caso de uso principal del Avance 2 y estructura de datos del Avance 3.
 
 > **Versión 2: observaciones del profesor guía.**
@@ -24,7 +24,9 @@ Cada historia se descompone en rol, acción y beneficio, según la plantilla de 
 | Rol | Quién es |
 |---|---|
 | Inspector de terreno | Inspector técnico que recorre la obra durante su turno y elabora el reporte diario. |
-| Jefatura de inspección | Coordinador del contrato, que supervisa la emisión de los reportes. |
+| Jefe de turno *(semana 8)* | Recibe las partes firmadas de los inspectores, las consolida en un solo reporte y lo envía al mandante. En la app su rol se llama «jefatura». |
+| Administrador *(semana 8)* | Mantiene el catálogo del contrato (áreas, empresas, usuarios y destinatarios) con una plantilla Excel. |
+| Jefatura de inspección | Coordinador del contrato, que consulta los reportes emitidos (HU-08, pendiente). |
 
 ## Orden del backlog
 
@@ -46,9 +48,9 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 | HU-14 | Consolidar las partes y enviar un solo reporte *(nueva, semana 8)* | Jefe de turno | Alta |
 | HU-15 | Mantener el catálogo del contrato desde un Excel *(nueva, semana 8)* | Administrador | Media |
 | HU-10 | Consultar mi historial en el calendario *(nueva, v2)* | Inspector | Media |
-| HU-08 | Consultar reportes anteriores | Jefatura | Baja |
+| HU-08 | Consultar reportes anteriores *(pendiente, no está en la app)* | Jefatura | Baja |
 
-> **HU-02 es la historia del flujo principal.** Es la que justifica el proyecto: si registrar un avance en terreno no resulta más rápido que anotarlo en la libreta, la solución no tiene sentido. El wireframe de esta semana desarrolla el flujo que va de HU-01 a HU-07, con HU-02 en el centro. En la versión 2, HU-09 se intercala entre HU-06 y HU-07: el reporte se aprueba desde la vista previa del PDF.
+> **HU-02 es la historia del flujo principal.** Es la que justifica el proyecto: si registrar un avance en terreno no resulta más rápido que anotarlo en la libreta, la solución no tiene sentido. El wireframe de esta semana desarrolla el flujo que va de HU-01 a HU-07, con HU-02 en el centro. En la versión 2, HU-09 se intercala entre HU-06 y HU-07: el reporte se aprueba desde la vista previa del PDF. **Desde la semana 8** el flujo del inspector termina en HU-12 (firma su parte), y HU-13, HU-09 y HU-14 son del jefe de turno.
 
 ---
 
@@ -254,7 +256,9 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 - **Dado** que el inspector registró los avances y las alertas del turno,
 - **cuando** solicita el reporte del día,
-- **entonces** ve un borrador con el correlativo asignado, el resumen del turno, los frentes con sus registros y la tabla de alertas, y puede editar el texto antes de aprobarlo.
+- **entonces** ve un borrador con el resumen del turno, los frentes con sus registros y la tabla de alertas, y puede editar el texto antes de cerrar su parte.
+
+> **Semana 8:** desde el borrador, el inspector toca «Cerrar y enviar al jefe de turno» y firma (HU-12). El correlativo lo toma el reporte consolidado.
 
 **Escenario alternativo · frentes sin resolver**
 
@@ -267,6 +271,8 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 ## HU-09 · Previsualizar el PDF antes de aprobarlo *(nueva, versión 2)*
 
 > **Origen: observación del profesor guía.** Antes de que el PDF se genere y se envíe, el inspector debe poder revisarlo tal como lo recibirá el mandante.
+>
+> **Semana 8:** la vista previa ahora la usa el **jefe de turno**, sobre el reporte consolidado, y el botón dice «Aprobar y enviar al mandante». El inspector ya no ve el PDF. Donde abajo dice «inspector», léase «jefe de turno».
 
 | | |
 |---|---|
@@ -306,6 +312,12 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 ---
 
 ## HU-07 · Emitir el reporte al mandante
+
+> **Semana 8:** el reporte lo emite el **jefe de turno**, una sola vez por turno, con las partes de todos (ver HU-14). Lo que cambia en sus escenarios:
+>
+> - **Falla o sin red:** el PDF queda guardado en el teléfono y el jefe toca «Reintentar envío al mandante». No queda en cola automática, y para consolidar se necesita señal porque las partes están en la nube.
+> - **Corrección después de enviado:** el reporte enviado no se edita. El envío nuevo sobre el mismo reporte queda pendiente.
+> - La cola automática sin red sí existe para el **inspector**: su parte firmada se sube sola al volver la señal (HU-12).
 
 | | |
 |---|---|
@@ -376,6 +388,8 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 - **entonces** ve el mes con cada día en verde (enviado), rojo (día de trabajo sin informe) o gris (descanso), con los inicios de turno marcados y el resumen del mes (enviados, no entregados y días de descanso).
 
 **Escenario alternativo · revisar un día enviado**
+
+> **Semana 8:** para el inspector, un día queda en verde cuando **firmó y entregó su parte** al jefe de turno.
 
 - **Dado** que un día está en verde,
 - **cuando** el inspector lo toca,
@@ -452,7 +466,7 @@ Pedido del profesor guía: un turno tiene varios inspectores y el mandante recib
 - **cuando** abro la app con señal,
 - **entonces** la pantalla de ingreso descarga el catálogo nuevo y mi nombre aparece en la lista.
 
-> En la maqueta la clave es la misma para todos (1234). En producción se usaría Supabase Auth.
+> En la maqueta la clave es la misma para todos (1234). En producción se usaría Supabase Auth. Al tocar «Cerrar sesión» (en Ajustes), la app sube primero lo registrado y vuelve al ingreso.
 
 ## HU-12 · Cerrar y firmar mi parte del turno *(nueva, semana 8)*
 
@@ -479,6 +493,14 @@ Pedido del profesor guía: un turno tiene varios inspectores y el mandante recib
 - **Dado** que firmo sin señal,
 - **cuando** vuelve la conexión,
 - **entonces** la parte firmada se sube sola.
+
+**Escenario alternativo · corregir después de firmar**
+
+- **Dado** que ya firmé y envié mi parte,
+- **cuando** cambio un registro, una alerta o el clima,
+- **entonces** mi parte vuelve a borrador y tengo que revisarla y firmarla de nuevo para que el jefe la vea.
+
+> Lo registrado se respalda en la nube cada 20 segundos mientras hay señal, pero el jefe solo ve la parte cuando está firmada.
 
 ## HU-13 · Saber cuántos inspectores ya enviaron *(nueva, semana 8)*
 
@@ -513,8 +535,22 @@ Pedido del profesor guía: un turno tiene varios inspectores y el mandante recib
 **Escenario principal**
 
 - **Dado** que el semáforo está en verde,
-- **cuando** toco «Consolidar», reviso el clima y la vista previa del PDF, y toco «Aprobar y enviar al mandante»,
-- **entonces** el reporte junta las áreas de todos (1.0 el área, 1.1 la empresa), las alertas y «Elaborado por» con todos los inspectores, toma el correlativo siguiente del contrato y sale **un solo correo** a los destinatarios del contrato.
+- **cuando** toco «Consolidar», reviso el clima (viene marcado el más repetido en las partes) y la vista previa del PDF, y toco «Aprobar y enviar al mandante»,
+- **entonces** el reporte junta las áreas de todos (1.0 el área, 1.1 la empresa, con las líneas de cada inspector por hora), las alertas y «Elaborado por» con todos los inspectores, toma el correlativo siguiente del contrato y sale **un solo correo** a los destinatarios del contrato.
+
+**Escenario alternativo · dejar fuera una parte**
+
+- **Dado** que una parte firmada no debe ir en el reporte,
+- **cuando** la desmarco en la lista antes de consolidar,
+- **entonces** el reporte se arma solo con las partes marcadas.
+
+**Escenario alternativo · consolidar un día anterior**
+
+- **Dado** que un día quedó sin consolidar,
+- **cuando** elijo esa fecha en la pantalla de consolidación,
+- **entonces** veo las partes firmadas de ese día y puedo consolidarlas.
+
+> Además del correo, el jefe puede tocar «Descargar paquete (.zip)», que trae el PDF, un resumen y las fotos con nombres legibles. Para consolidar se necesita señal.
 
 **Escenario alternativo · falta un inspector**
 
@@ -534,7 +570,7 @@ Pedido del profesor guía: un turno tiene varios inspectores y el mandante recib
 
 - **Dado** que descargué la plantilla y la llené,
 - **cuando** la cargo en la app y toco «Publicar catálogo»,
-- **entonces** la app valida el archivo, muestra qué cambia y publica una versión nueva. Los teléfonos la reciben al abrir la app.
+- **entonces** la app valida el archivo, muestra los errores o qué cambia y publica una versión nueva. Los teléfonos muestran «Hay un catálogo nuevo · Actualizar», y la pantalla de ingreso lo descarga sola.
 
 **Escenario alternativo · alguien deja de trabajar**
 

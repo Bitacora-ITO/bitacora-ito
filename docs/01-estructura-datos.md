@@ -1,4 +1,4 @@
- Estructura de datos preliminar
+# Estructura de datos preliminar
 
 **Proyecto:** Bitácora - ITO
 **Fecha:** 30 de septiembre de 2026
@@ -6,6 +6,7 @@
 **Estado:** preliminar. Se ajustará a medida que avance el desarrollo.
 **Datos personales:** la finalidad, quién ve y cuánto se conserva cada dato personal están en la [ficha de tratamiento de datos](etica.md#2-ficha-de-tratamiento-de-datos-personales) (semana 7).
 **Actualización:** 20 de octubre de 2026 (versión 2). Recoge las observaciones del profesor guía: las áreas se eligen de una lista y el PDF se previsualiza. Suma además el historial con rol de turnos (ver §9).
+**Actualización:** 4 de noviembre de 2026 (semana 8). Varios inspectores por turno, firma de cada parte y un solo reporte consolidado que envía el jefe de turno (ver §10). Donde una regla antigua cambió, se indica junto a ella.
 
 ---
 
@@ -19,7 +20,7 @@ Una segunda regla, acordada con el equipo: **el modelo guarda lo que el reporte 
 
 | Entidad | Qué representa |
 |---|---|
-| `usuario` | Inspector de terreno, jefatura de inspección o administrador |
+| `usuario` | Inspector de terreno, jefe de turno (`jefatura`) o administrador |
 | `contrato` | Servicio de inspección con su mandante, su formato de reporte y sus destinatarios |
 | `empresa` | Contratista o laboratorio que ejecuta trabajos en la obra (TECNASIC, GEOINYECTA, IDIEM, OOCC) |
 | `frente` | **Área** del contrato (en la aplicación se llama «área»), jerárquica (área → subárea). Es un catálogo precargado con el contrato: el inspector la **elige de una lista** y no la escribe (versión 2) |
@@ -30,6 +31,8 @@ Una segunda regla, acordada con el equipo: **el modelo guarda lo que el reporte 
 | `alerta` | Hecho que se publica en la tabla de alertas del reporte |
 | `fotografia` | Imagen asociada a un registro o a una alerta |
 | `envio` | Remisión del reporte al mandante |
+| `consolidado` | Reporte único del turno que arma el jefe de turno con las partes firmadas *(semana 8)* |
+| `catalogo_version` | Versión del catálogo publicado desde el Excel del administrador *(semana 8)* |
 
 ## 3. Relaciones
 
@@ -39,8 +42,8 @@ erDiagram
     CONTRATO ||--o{ REPORTE : "agrupa"
     CONTRATO ||--o{ USUARIO : "asigna"
     FRENTE ||--o{ FRENTE : "subfrente de"
-    FRENTE ||--o{ REGISTRO : "localiza"
-    EMPRESA ||--o{ REGISTRO : "ejecuta"
+    AREA_TURNO ||--o{ REGISTRO : "contiene"
+    AREA_TURNO ||--o{ ALERTA : "ubica (opcional)"
     EMPRESA ||--o{ ALERTA : "involucra"
     REPORTE ||--o{ REGISTRO : "contiene"
     REPORTE ||--o{ ALERTA : "contiene"
@@ -53,14 +56,19 @@ erDiagram
     CONTRATO ||--o{ ROL_TURNO : "define"
     REGISTRO ||--o{ FOTOGRAFIA : "respalda"
     ALERTA ||--o{ FOTOGRAFIA : "respalda"
+    CONTRATO ||--o{ CONSOLIDADO : "agrupa"
+    CONSOLIDADO ||--o{ REPORTE : "junta las partes"
+    USUARIO ||--o{ CONSOLIDADO : "consolida"
+    CONTRATO ||--|| CATALOGO_VERSION : "publica"
 ```
 
 En palabras:
 
 - Un **contrato** trae su catálogo de **áreas** (tabla `frente`, que puede anidar subáreas) y de **empresas**, y tiene sus inspectores asignados. Desde la versión 2, el catálogo lo carga la jefatura con el contrato. El inspector solo **elige** de la lista qué áreas trabaja en su turno y con qué empresa (`area_turno`).
 - Cada inspector tiene un **rol de turnos** (`rol_turno`, 7x7) con el primer día de su turno. Con él, el historial distingue un día de descanso de un día de trabajo sin informe.
-- Un **reporte** corresponde a un contrato, una fecha y un turno, y lo elabora **un** inspector.
-- Un **registro** pertenece a un reporte, se ubica en un subfrente y corresponde a la empresa que ejecuta el trabajo.
+- Un **reporte** es la **parte** de un inspector: un contrato, una fecha, un turno y un inspector. El inspector la firma al cerrarla *(semana 8)*.
+- Un **consolidado** junta las partes firmadas del día en el único reporte que recibe el mandante. Lo arma y lo envía el jefe de turno *(semana 8)*.
+- Un **registro** pertenece a un reporte y cuelga de un **área del turno** (`area_turno`), que ya trae el área y la empresa que ejecuta el trabajo.
 - Una **alerta** pertenece a un reporte y se publica en una de las cuatro columnas del formato: Construcción, Laboratorio, Topografía o Interferencia.
 - Las **fotografías** cuelgan del registro o de la alerta, lo que permite agruparlas por frente en el anexo.
 
@@ -72,8 +80,9 @@ En palabras:
 |---|---|---|---|
 | `id` | uuid | Sí | `9c1e…` |
 | `nombre` | texto | Sí | `Jorge Orellana S.` |
-| `correo` | texto | Sí | `jorellana@empresa.cl` |
+| `correo` | texto | No *(opcional desde la semana 8)* | `jorellana@empresa.cl` |
 | `rol` | enum (`inspector`, `jefatura`, `admin`) | Sí | `inspector` |
+| `contrato_id` | uuid (FK) | No *(semana 8)* | `4f77…` |
 | `activo` | booleano | Sí | `true` |
 
 ### 4.2 `contrato`
@@ -82,16 +91,18 @@ En palabras:
 |---|---|---|---|
 | `id` | uuid | Sí | `4f77…` |
 | `nombre` | texto | Sí | `Servicio de ITO y Apoyo a la Construcción de Carén` |
+| `numero` | texto | No | `4600026893` |
 | `mandante` | texto | Sí | `<mandante>` |
 | `codigo_proyecto` | texto | Sí | `4600026893-8211-FRMCS-00001` |
 | `codigo_interno` | texto | No | `JEJ-664-CT-INF-002` |
 | `revision_formato` | texto | Sí | `1` |
+| `fecha_formato` | texto | No | `02-07-2024` |
 | `prefijo_correlativo` | texto | Sí | `4600026893-8211-INDCS-` |
 | `ultimo_correlativo` | entero | Sí | `1972` |
 | `destinatarios` | lista de texto | Sí | `["inspeccion@mandante.cl"]` |
 | `hora_cierre_turno_dia` | hora | No | `19:00` |
 
-> `prefijo_correlativo` y `ultimo_correlativo` son lo que permite que el sistema asigne el número del reporte sin intervención manual. La serie es una sola y corre de forma continua: el reporte del turno día toma un número y el del turno noche toma el siguiente.
+> `prefijo_correlativo` y `ultimo_correlativo` son lo que permite que el sistema asigne el número del reporte sin intervención manual. La serie es una sola y corre de forma continua. *(Semana 8: el número que sale al mandante lo toma el reporte consolidado del jefe de turno; ver §10, regla 4.)*
 
 ### 4.3 `empresa`
 
@@ -100,7 +111,7 @@ En palabras:
 | `id` | uuid | Sí | `c330…` |
 | `contrato_id` | uuid (FK) | Sí | `4f77…` |
 | `nombre` | texto | Sí | `TECNASIC` |
-| `tipo` | enum (`contratista`, `laboratorio`, `topografia`, `otro`) | Sí | `contratista` |
+| `tipo` | enum (`contratista`, `laboratorio`, `topografia`, `obras_civiles`, `otro`) | Sí | `contratista` |
 
 ### 4.4 `frente`
 
@@ -136,14 +147,15 @@ En palabras:
 | `elaborado_por` | uuid (FK) | Sí | `9c1e…` |
 | `clima_turno` | enum (`despejado`, `nublado`, `lluvia`) | Sí | `despejado` |
 | `clima_proyeccion` | enum (`despejado`, `nublado`, `lluvia`) | Sí | `despejado` |
-| `estado` | enum (`borrador`, `generado`, `aprobado`, `enviado`) | Sí | `enviado` |
+| `estado` | enum (`borrador`, `generado`, `aprobado`, `enviado`) | Sí | `aprobado` |
 | `hora_generacion` | timestamp | No | `2026-09-27T17:52:00-03:00` |
-| `hora_aprobacion` | timestamp | No | `2026-09-27T17:56:00-03:00` |
-| `aprobado_por` | uuid (FK) | No | `9c1e…` |
+| `hora_aprobacion` | timestamp | No | `2026-09-27T17:56:00-03:00` (desde la semana 8: hora de la firma del inspector) |
+| `aprobado_por` | uuid (FK) | No | `9c1e…` (desde la semana 8: quién firmó la parte) |
+| `entregado_en` | timestamp | No *(semana 8)* | `2026-09-27T17:57:00-03:00` (firmada y enviada al jefe de turno) |
 | `url_pdf` | texto | No | `https://…/reporte_2026-09-27.pdf` |
 | `resumen_turno` | texto largo | No | `Turno sin novedades críticas. Se ejecutó avance en Muro Sotelo.` |
 
-> El reporte lo elabora y emite **un** inspector, cuyo nombre queda en el campo «Elaborado por». Hay un reporte por turno: el del turno día y el del turno noche, cada uno a cargo de un inspector distinto.
+> **Desde la semana 8**, `reporte` es la parte de **un** inspector. Varios inspectores trabajan el mismo turno y cada uno tiene su parte. El reporte que recibe el mandante es el `consolidado`, y en su «Elaborado por» aparecen todos los inspectores. Solo se usa el turno de día.
 
 ### 4.6 `registro`
 
@@ -151,8 +163,7 @@ En palabras:
 |---|---|---|---|
 | `id` | uuid | Sí | `e5a9…` |
 | `reporte_id` | uuid (FK) | Sí | `7bd3…` |
-| `frente_id` | uuid (FK) | Sí | `a012…` |
-| `empresa_id` | uuid (FK) | No | `c330…` |
+| `area_turno_id` | uuid (FK) | Sí | `f310…` (área del turno, con su empresa) |
 | `sin_actividad` | booleano | Sí | `false` |
 | `descripcion` | texto largo | Sí (si `sin_actividad` es falso) | `Se realiza extendido y compactación de material 1A, 5.ª capa 30 cm…` |
 | `origen_descripcion` | enum (`dictado`, `escrito`) | Sí | `dictado` |
@@ -170,8 +181,8 @@ En palabras:
 | `id` | uuid | Sí | `b7c1…` |
 | `reporte_id` | uuid (FK) | Sí | `7bd3…` |
 | `columna` | enum (`construccion`, `laboratorio`, `topografia`, `interferencia`) | Sí | `construccion` |
-| `empresa_id` | uuid (FK) | No | `c330…` |
-| `frente_id` | uuid (FK) | No | `a012…` |
+| `empresa_id` | uuid (FK) | Sí en la app | `c330…` |
+| `area_turno_id` | uuid (FK) | No | `f310…` (vacío = «Sin área específica») |
 | `descripcion` | texto largo | Sí | `En zanja de anclaje ZCF los rellenos de las últimas 2 capas no presentan la misma consistencia…` |
 | `criticidad` | enum (`baja`, `media`, `alta`) | Sí | `media` |
 | `registrado_en` | timestamp | Sí | `2026-09-27T14:10:00-03:00` |
@@ -185,14 +196,16 @@ En palabras:
 | `id` | uuid | Sí | `11c4…` |
 | `registro_id` | uuid (FK) | No | `e5a9…` |
 | `alerta_id` | uuid (FK) | No | `b7c1…` |
-| `url` | texto | Sí | `https://…/f-01972-01.jpg` |
+| `reporte_id` | uuid (FK) | No | `7bd3…` (atajo para buscar las fotos de un reporte) |
+| `ruta` | texto | Sí | ruta de la imagen en el almacenamiento `fotos` de Supabase |
+| `url` | texto | No | `https://…/f-01972-01.jpg` |
 | `orden` | entero | Sí | `1` |
 | `pie_foto` | texto | No | `Muro Sotelo, extendido capa 17` |
 | `capturada_en` | timestamp | Sí | `2026-09-27T10:22:00-03:00` |
 | `latitud` | decimal | No | `-22.451200` |
 | `longitud` | decimal | No | `-68.923100` |
 
-> Toda fotografía cuelga de un registro o de una alerta, nunca de ambos ni de ninguno. El anexo fotográfico se arma siguiendo el `orden` del frente al que pertenece el registro.
+> Toda fotografía cuelga de un registro o de una alerta, nunca de ambos ni de ninguno. Un avance exige al menos una fotografía; una alerta solo si es de criticidad alta. El anexo fotográfico se arma siguiendo el `orden` del frente al que pertenece el registro.
 
 ### 4.9 `envio`
 
@@ -202,9 +215,14 @@ En palabras:
 | `reporte_id` | uuid (FK) | Sí | `7bd3…` |
 | `enviado_por` | uuid (FK) | Sí | `9c1e…` |
 | `destinatarios` | lista de texto | Sí | `["inspeccion@mandante.cl"]` |
-| `enviado_en` | timestamp | Sí | `2026-09-27T17:58:00-03:00` |
-| `estado` | enum (`enviado`, `fallido`, `reintentando`) | Sí | `enviado` |
+| `estado` | enum (`en_cola`, `enviando`, `enviado`, `fallido`) | Sí | `enviado` |
+| `creado_en` | timestamp | Sí | `2026-09-27T17:57:00-03:00` |
+| `enviado_en` | timestamp | No | `2026-09-27T17:58:00-03:00` |
+| `intentos` | entero | Sí | `1` |
+| `error` | texto | No | motivo del último fallo |
 | `acuse_recibido` | booleano | No | `true` |
+
+> **Semana 8:** `envio` queda para los envíos del inspector anteriores a la consolidación. El envío del reporte consolidado se registra en `consolidado` (`estado` = `enviado` y `enviado_en`).
 
 ### 4.10 `area_turno` *(versión 2)*
 
@@ -217,7 +235,7 @@ En palabras:
 | `orden` | entero | Sí | `2` → se imprime como sección 2.0 y la empresa como 2.1 |
 | `agregada_en` | timestamp | Sí | `2026-10-14T08:05:00-03:00` |
 
-> Se crea cuando el inspector toca «Agregar área» y elige el área y la empresa. Los registros del turno (`registro`) cuelgan del área del turno a través de `frente_id` y `empresa_id`. Un área no puede aparecer dos veces en el mismo reporte con la misma empresa.
+> Se crea cuando el inspector toca «Agregar área» y elige el área y la empresa. Los registros del turno (`registro`) cuelgan del área del turno a través de `area_turno_id`. Un área no puede aparecer dos veces en el mismo reporte. Al abrir un turno nuevo, el inspector parte con las áreas de su reporte anterior.
 
 ### 4.11 `rol_turno` *(versión 2)*
 
@@ -233,28 +251,59 @@ En palabras:
 
 > Para cualquier fecha, el día del ciclo es `(fecha − fecha_inicio) mod (dias_trabajo + dias_descanso)`. Si es menor que `dias_trabajo`, es día de trabajo; si no, es descanso. En el calendario, un día de trabajo con `envio` en estado `enviado` sale **verde**, un día de trabajo sin envío ya pasado sale **rojo** y un día de descanso sale **gris**. Cada `fecha_inicio + k × 14` se marca como inicio de turno.
 
+### 4.12 `consolidado` *(semana 8)*
+
+| Campo | Tipo | Obligatorio | Ejemplo |
+|---|---|---|---|
+| `id` | uuid | Sí | `5c2a…` |
+| `contrato_id` | uuid (FK) | Sí | `4f77…` |
+| `fecha` | fecha | Sí | `2026-10-30` |
+| `turno` | enum (`dia`, `noche`) | Sí | `dia` |
+| `correlativo` | texto | Sí | `4600026893-8211-INDCS-01973` |
+| `consolidado_por` | uuid (FK) | No | `9c1e…` (jefe de turno) |
+| `partes` | lista de uuid | Sí | ids de los `reporte` incluidos |
+| `elaborado_por_texto` | texto | No | `Jorge Orellana S. / Alberto Castillo` |
+| `clima_turno` | enum | No | `despejado` (lo elige el jefe; por defecto, el más repetido en las partes) |
+| `clima_proyeccion` | enum | No | `despejado` |
+| `estado` | enum (`borrador`, `generado`, `aprobado`, `enviado`) | Sí | `enviado` |
+| `ruta_pdf` | texto | No | ruta del PDF en el almacenamiento `reportes` |
+| `enviado_en` | timestamp | No | `2026-10-30T18:40:00-03:00` |
+| `creado_en` | timestamp | Sí | `2026-10-30T18:30:00-03:00` |
+
+### 4.13 `catalogo_version` *(semana 8)*
+
+| Campo | Tipo | Obligatorio | Ejemplo |
+|---|---|---|---|
+| `contrato_id` | uuid (FK, clave) | Sí | `4f77…` |
+| `version` | entero | Sí | `3` |
+| `cargado_por` | uuid (FK) | No | `9c1e…` (administrador) |
+| `cargado_en` | timestamp | Sí | `2026-11-01T22:10:00-03:00` |
+| `nota` | texto | No | resumen de cambios |
+
+> El Excel del administrador tiene cuatro hojas: Contrato (con los destinatarios y la hora de cierre), Áreas, Empresas y Usuarios (nombre, correo opcional, rol y activo). El rol de turnos 7x7 no va en el Excel: la demostración trae uno por inspector y cada uno puede cambiar su primer día de turno en el Historial.
+
 ## 5. Reglas de negocio
 
-1. Existe **un solo reporte por contrato, fecha y turno**, y cada turno lo elabora un inspector distinto. Al registrar la primera actividad, el reporte se crea en estado `borrador` y toma el correlativo siguiente de la serie del contrato, que es única y continua para ambos turnos.
+1. *(Cambia en la semana 8: ver §10, regla 1.)* Existe **un solo reporte por contrato, fecha y turno**, y cada turno lo elabora un inspector distinto. Al registrar la primera actividad, el reporte se crea en estado `borrador` y toma el correlativo siguiente de la serie del contrato, que es única y continua para ambos turnos.
 2. Un frente **sin registros al cierre del turno** obliga al inspector a confirmar «sin actividad»: el reporte no se genera con frentes en blanco.
 3. *(Versión 2)* El inspector **no crea ni escribe áreas**: elige del catálogo del contrato y la empresa que la ejecuta. La jefatura puede agregar o dar de baja áreas del catálogo; el cambio rige desde el reporte en curso y no altera los reportes ya emitidos.
 4. Una alerta de criticidad `alta` **exige al menos una fotografía**.
-5. Un reporte solo pasa a `enviado` después de `aprobado`: **la aprobación humana es obligatoria** y queda registrada con autor y hora.
+5. Un reporte solo pasa a `enviado` después de `aprobado`: **la aprobación humana es obligatoria** y queda registrada con autor y hora. *(Semana 8: la parte del inspector se aprueba con su firma; el consolidado lo aprueba el jefe de turno.)*
 6. Los registros capturados sin señal conservan su `registrado_en` original al sincronizar.
 7. Un reporte enviado **no se edita**: una corrección genera un nuevo `envio` sobre el mismo reporte, con trazabilidad de ambos.
 8. Cada reporte es **independiente**: las alertas pertenecen al día en que se levantaron y no se heredan ni se cierran en reportes posteriores.
-9. *(Versión 2)* La aprobación de la regla 5 **solo se puede dar desde la vista previa del PDF**: el reporte pasa a `generado` cuando se arma el PDF de la vista previa y a `aprobado` cuando el inspector toca «Aprobar y enviar» después de verlo.
-10. *(Versión 2)* Un día cuenta como **no entregado** solo si es día de trabajo según `rol_turno` y no tiene un `envio` en estado `enviado`. Los días de descanso no cuentan.
+9. *(Versión 2)* La aprobación de la regla 5 **solo se puede dar desde la vista previa del PDF**: el reporte pasa a `generado` cuando se arma el PDF de la vista previa y a `aprobado` cuando se toca «Aprobar y enviar» después de verlo. *(Semana 8: la vista previa y el envío son del jefe de turno, sobre el consolidado. El inspector ya no genera PDF.)*
+10. *(Versión 2)* Un día cuenta como **no entregado** solo si es día de trabajo según `rol_turno` y no tiene un `envio` en estado `enviado`. Los días de descanso no cuentan. *(Semana 8: para el inspector, un día con su parte firmada y entregada cuenta como cumplido.)*
 
 ## 6. Cómo se mide la propuesta de solución con este modelo
 
 | Indicador | Cálculo |
 |---|---|
-| Tiempo de elaboración del reporte | `envio.enviado_en` − `MIN(registro.registrado_en)` del turno |
-| Reportes enviados dentro del turno | `envio.enviado_en` ≤ `contrato.hora_cierre_turno_dia` |
-| Minutos de edición del borrador | `reporte.hora_aprobacion` − `reporte.hora_generacion` |
+| Tiempo de elaboración del reporte | `consolidado.enviado_en` − `MIN(registro.registrado_en)` del turno |
+| Reportes enviados dentro del turno | `consolidado.enviado_en` ≤ `contrato.hora_cierre_turno_dia` |
+| Partes firmadas a tiempo *(semana 8)* | `reporte.entregado_en` de cada inspector frente a la hora de cierre del turno |
 | Registros levantados en terreno | Proporción con `latitud` presente y `registrado_en` dentro del turno |
-| Informes entregados en el mes *(v2)* | Días de trabajo del mes según `rol_turno` con `envio.estado = enviado`, frente al total de días de trabajo |
+| Informes entregados en el mes *(v2)* | Días de trabajo del mes según `rol_turno` con la parte entregada, frente al total de días de trabajo |
 
 ## 7. Decisiones pendientes
 
