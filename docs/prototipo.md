@@ -2,15 +2,18 @@
 
 **Enlace al prototipo en Figma:** [abrir prototipo navegable](https://www.figma.com/proto/6lebHYRTbcb8f5WOnMW3pv/Sin-t%C3%ADtulo?node-id=1-2&p=f&t=XOez3IwfZ95WUirR-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=1%3A2&show-proto-sidebar=1)
 
-Al abrirlo, la barra lateral muestra cinco flujos:
+Al abrirlo, la barra lateral muestra ocho flujos:
 
 | Flujo | Parte en |
 |---|---|
+| **Ingreso** (semana 8) | 09a |
+| **Jefe de turno** (semana 8) | 10a |
+| **Administrador** (semana 8) | 11a |
 | **Ruta principal** | 01a |
 | **A1 · Alerta alta sin foto** | 03a |
 | **A3 · Envío sin red** | 05d |
 | **Estado vacío** | 01b |
-| **Historial** (nuevo) | 08a |
+| **Historial** | 08a |
 
 El camino A2 (áreas sin resolver) se recorre desde la ruta principal: hay que tocar «Revisar reporte del turno» antes de registrar el área Peralte Muro Sotelo.
 
@@ -20,16 +23,18 @@ El camino A2 (áreas sin resolver) se recorre desde la ruta principal: hay que t
 - El PDF se previsualiza antes de aprobarlo y enviarlo.
 - Sección nueva: Historial con calendario.
 
+**Semana 8:** varios inspectores por turno. Cada uno firma su parte y el jefe de turno consolida y envía un solo reporte. Se suman el ingreso con clave, el semáforo y el catálogo del administrador. El detalle está en la [sección 6](#6-cambios-de-la-semana-8); las secciones 1 a 5 describen el prototipo hasta la semana 6.
+
 **Origen:**
 
 - Las pantallas P1 a P5 del wireframe anotado de la semana 4.
-- Las historias HU-01 a HU-10 de `historias.md`. HU-02 sigue siendo la historia del flujo principal.
+- Las historias HU-01 a HU-15 de `historias.md`. HU-02 sigue siendo la historia del flujo principal.
 
 **Dispositivo:** teléfono, marco de 390 × 844 px (iPhone 13/14 en Figma).
 
-**Quién lo prueba:** el inspector de terreno, en faena, con guantes y a veces sin señal.
+**Quién lo prueba:** el inspector de terreno, en faena, con guantes y a veces sin señal; desde la semana 8, también el jefe de turno y el administrador.
 
-Vista general de los 25 marcos: [pantallas-vista-general.png](pantallas-vista-general.png)
+Vista general de los 35 marcos: [pantallas-vista-general.png](pantallas-vista-general.png)
 
 ---
 
@@ -56,7 +61,7 @@ HU-08 (consulta de la jefatura) queda fuera del prototipo. El Historial es la co
 
 ![Mapa de navegación](mapa.png)
 
-**Punto de entrada:** P1 Turno y áreas (01a).
+**Punto de entrada:** P1 Turno y áreas (01a). Desde la semana 8 se entra por 09a Ingreso, que lleva al inspector a 01a, al jefe de turno a 10a y al administrador a 11a. El mapa de esta sección muestra el flujo del inspector hasta la semana 6; el de la semana 8, con los tres roles, está en la [sección 6](#6-cambios-de-la-semana-8).
 
 **Ruta principal (escenario de éxito, HU-01 → HU-07):**
 P1 Turno → toca «Peralte Muro Sotelo» → P2 Registrar avance → Guardar → P1 con el área resuelta → Revisar reporte → P4 Borrador → **Ver vista previa del PDF → P4.5 Vista previa (página 1 ↔ página 2) → Aprobar y enviar** → P5 Enviar → Confirmar → Enviado → Volver al turno
@@ -147,7 +152,7 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 | Envío y acuse | Funcional en flujo | 05c confirma «Enviado 17:58 · acuse recibido» |
 | Clima del turno | Simulado | Selector visible, no cambia nada |
 | Declarar sin actividad (HU-04) | Fuera del recorrido | Visible para que el usuario sepa que existe; no navega |
-| Inicio de sesión | Fuera del prototipo | Se asume sesión iniciada |
+| Inicio de sesión | **Funcional en el recorrido** *(semana 8)* | 09a: elegir usuario y clave; cada rol abre su pantalla |
 
 - **Exclusión deliberada de cronogramas (Primavera P6 / MS Project):** el sistema no se enlaza con partidas ni con porcentajes de avance de programas de obra, para no recargar al inspector en terreno. El reporte registra lo observado durante el turno y las desviaciones o alertas, y prioriza la velocidad de captura con dictado por voz.
 
@@ -223,6 +228,8 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 | 10d Reporte consolidado enviado | Jefe de turno | Confirmación del único correo del turno | HU-14 |
 | 09b / 09c Ajustes | Jefe / Inspector | Sesión y «Cerrar sesión» (el jefe ve además el destinatario de prueba) | HU-11 |
 | 11a Catálogo del contrato | Administrador | Plantilla Excel: descargar, cargar, revisar cambios y publicar | HU-15 |
+
+![Mapa de navegación de la semana 8](mapa-semana8.png)
 
 **Flujo nuevo:** Ingreso → (inspector) turno → registrar → borrador → **Cerrar y enviar al jefe de turno** → firma → parte enviada. En paralelo: (jefe) inicio con semáforo → consolidación → **Consolidar** → revisión → vista previa del PDF → **Aprobar y enviar al mandante**.
 

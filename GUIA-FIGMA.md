@@ -1,5 +1,7 @@
 # Guía para armar el prototipo en Figma
 
+> **Semana 8:** los marcos nuevos (ingreso, firma del inspector, jefe de turno, Ajustes y catálogo) también están aplicados en Figma. Ver la sección [Semana 8](#semana-8--versión-2-ya-aplicada-en-figma) al final.
+>
 > **Versión 2 (semana 6): ya está aplicada en el archivo de Figma.**
 >
 > Las pantallas nuevas y las modificadas se hicieron directo en el archivo, a través del conector de Figma. No hay que importar nada nuevo:
@@ -151,7 +153,7 @@ El apunte pide que los estados estén «señalados en la anotación». Al lado d
 
 ## Semana 8 · versión 2 (ya aplicada en Figma)
 
-Siete marcos nuevos y tres modificados. No se borró ningún marco: los que quedaron obsoletos llevan encima una nota «Reemplazado en v2 por…». Las notas amarillas «v2 · …» marcan lo nuevo.
+Diez marcos nuevos y tres modificados (04b, 07a y 07b). No se borró ningún marco: los que quedaron obsoletos llevan encima una nota «Reemplazado en v2 por…». Las notas amarillas «v2 · …» marcan lo nuevo.
 
 | Marco | Qué muestra | Lleva a |
 |---|---|---|
