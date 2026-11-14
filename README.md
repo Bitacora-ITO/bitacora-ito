@@ -146,5 +146,5 @@ Equipo N.º 1, modalidad online.
 - [Manual de instalación](docs/manual-instalacion.md)
 - [Prueba de usuarios: diseño, perfiles, plan de levantamiento y sesión piloto](docs/prueba-usuarios.md)
 - [Pauta de validación](docs/pauta-validacion.md)
-- [Evidencia de la prueba de usuarios (Drive restringido)](PEGAR-AQUI-EL-ENLACE-DEL-DRIVE)
+- [Evidencia de la prueba de usuarios (Drive restringido)](https://drive.google.com/drive/folders/1tUrYn61Pu5rgfOUttUz2DBbsO1Ho4Enc?usp=sharing)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
