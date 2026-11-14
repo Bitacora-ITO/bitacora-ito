@@ -56,6 +56,8 @@ La aplicación está publicada en Vercel y se genera también como APK para Andr
 | Prototipo v2: observaciones del profesor e Historial | 6 | Entregado |
 | Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
 | Consolidación por el jefe de turno, firma del inspector y semáforo (PoC del flujo principal) | 8 | Entregado |
+| Diseño de la prueba de usuarios y sesión piloto | 9 | Entregado |
+| Prueba de usuarios (dos semanas) | 9 y 10 | En curso |
 | MVP validado con inspectores | 12 | Pendiente |
 
 ## Stack tecnológico
@@ -102,6 +104,8 @@ bitacora-ito/
 │   ├── historias.md         Historias de usuario y criterios de aceptación
 │   ├── prototipo.md         Prototipo navegable, mapas y registro de decisiones
 │   ├── etica.md
+│   ├── prueba-usuarios.md   Diseño de la prueba, perfiles, plan y sesión piloto
+│   ├── pauta-validacion.md  Pauta que se lee en cada sesión
 │   └── manual-instalacion.md
 ├── src/                     Código de la aplicación
 ├── public/                  Archivos estáticos y plantilla Excel del catálogo
@@ -140,4 +144,7 @@ Equipo N.º 1, modalidad online.
 - [Prototipo navegable: mapa de navegación, estados y registro de decisiones](docs/prototipo.md) · [abrir en Figma](https://www.figma.com/proto/6lebHYRTbcb8f5WOnMW3pv/Sin-t%C3%ADtulo?node-id=1-2&p=f&t=XOez3IwfZ95WUirR-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=1%3A2&show-proto-sidebar=1)
 - [Análisis ético, de sostenibilidad e impacto](docs/etica.md)
 - [Manual de instalación](docs/manual-instalacion.md)
+- [Prueba de usuarios: diseño, perfiles, plan de levantamiento y sesión piloto](docs/prueba-usuarios.md)
+- [Pauta de validación](docs/pauta-validacion.md)
+- [Evidencia de la prueba de usuarios (Drive restringido)](PEGAR-AQUI-EL-ENLACE-DEL-DRIVE)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
