@@ -122,7 +122,7 @@ Los roles rotan entre los integrantes del equipo.
 - Se guardan en una carpeta de **Google Drive restringida** al equipo y al profesor, fuera del repositorio.
 - Nombre de archivo: `AAAA-MM-DD_P1_inspector.mp4`, sin nombres de personas.
 - Se conservan hasta el cierre del semestre y luego se eliminan.
-- Enlace controlado: [Evidencia de la prueba de usuarios (Drive restringido)](PEGAR-AQUI-EL-ENLACE-DEL-DRIVE)
+- Enlace controlado: [Evidencia de la prueba de usuarios (Drive restringido)](https://drive.google.com/drive/folders/1tUrYn61Pu5rgfOUttUz2DBbsO1Ho4Enc?usp=sharing)
 
 ### Planilla de observaciones
 
