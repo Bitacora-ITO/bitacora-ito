@@ -57,7 +57,7 @@ La aplicación está publicada en Vercel y se genera también como APK para Andr
 | Análisis ético, de sostenibilidad e impacto | 7 | Entregado |
 | Consolidación por el jefe de turno, firma del inspector y semáforo (PoC del flujo principal) | 8 | Entregado |
 | Diseño de la prueba de usuarios y sesión piloto | 9 | Entregado |
-| Prueba de usuarios (dos semanas) | 9 y 10 | En curso |
+| Prueba de usuarios: sesión 2 y cierre con resultados | 10 | Entregado |
 | MVP validado con inspectores | 12 | Pendiente |
 
 ## Stack tecnológico

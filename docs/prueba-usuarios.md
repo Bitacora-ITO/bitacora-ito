@@ -1,7 +1,7 @@
 # Prueba de usuarios
 
 **Proyecto:** Bitácora - ITO · **Fecha:** 14 de noviembre de 2026 · **Base:** Apunte 5.1
-**Periodo de la prueba:** dos semanas, del 16 al 27 de noviembre de 2026.
+**Periodo de la prueba:** dos semanas, del 11 al 20 de noviembre de 2026. **Estado: cerrada** (resultados en la [sección 6](#6-cierre-de-la-prueba)).
 **Pauta que se lee en cada sesión:** [pauta-validacion.md](pauta-validacion.md)
 
 Esta prueba no es una demostración. Es un experimento para saber si las personas correctas completan el flujo principal **sin ayuda**, y puede demostrar que el equipo estaba equivocado.
@@ -102,8 +102,8 @@ Cinco personas por perfil descubren cerca del 85 % de los problemas de uso (Niel
 | Semana | Fechas | Qué se hace |
 |---|---|---|
 | 0 | 11-11-2026 | Sesión piloto con 1 participante (hecha, ver sección 4) |
-| 1 | 16 al 20-11-2026 | Ensayo de la pauta con el equipo; sesiones con inspectores (P1 a P5) |
-| 2 | 23 al 27-11-2026 | Sesiones con jefes de turno (J1 a J5); análisis y decisiones |
+| 1 | 18-11-2026 | Sesión 2 con 1 inspector (P1) y 1 jefe de turno (J1) (hecha, ver sección 5) |
+| 2 | 20-11-2026 | Análisis y cierre de la prueba (ver sección 6) |
 
 Cada sesión dura unos 30 minutos, en terreno o por videollamada, con el teléfono del participante o uno del equipo con la app instalada.
 
@@ -170,6 +170,80 @@ Primera prueba con **un participante (P0)**, que recorrió el flujo del inspecto
 ![Registrar avance: Declarar sin actividad](prueba-usuarios/02-registrar-avance-propuesta.png)
 
 ![Reporte PDF: cada foto junto a su descripción](prueba-usuarios/03-reporte-pdf-propuesta.png)
+
+## 5. Evidencia: sesión 2 del 18-11-2026
+
+Segunda prueba con **un inspector (P1)** y **un jefe de turno (J1)**, con la pauta de validación. Se grabó en video; los videos y las fotos originales están en el [Drive restringido](https://drive.google.com/drive/folders/1tUrYn61Pu5rgfOUttUz2DBbsO1Ho4Enc?usp=sharing). Aquí se muestran con nombres y correo ocultos.
+
+Los hallazgos siguen la numeración de la sesión piloto: si un problema se repite, conserva su número.
+
+![Recorrido de la sesión 2](prueba-usuarios/10-recorrido-sesion-2.png)
+
+### Hallazgos
+
+| N.º | Pantalla | Observado | Severidad | ¿Se repite? | Propuesta |
+|---|---|---|---|---|---|
+| 1 | Turno | Después de ingresar con su clave, no sabía dónde marcar el inicio del turno (calendario). | Entorpece | **Sí** (2 de 2) | Aviso «Paso 1» y calendario resaltado |
+| 6 | Turno | Después de agregar el área, no sabía si debía tocar la tarjeta «Pendiente» para describir la actividad. | Entorpece | Nuevo | Botón «Registrar avance de esta área» dentro de la tarjeta |
+| 7 | Resumen del turno | No abrió las secciones para ver el detalle y pasó directo a firmar. | Entorpece | Nuevo | Aviso «Antes de firmar, abre cada sección» y botón «Ver detalle» |
+| 4 | Turno | Al final no sabía cómo cerrar sesión: está dentro de los tres puntos. | Entorpece | **Sí** (2 de 2) | Botón «Cerrar sesión» visible |
+
+**Sin problemas:** ingresar con usuario y clave, agregar un área del catálogo, describir la actividad con foto, y firmar y enviar la parte al jefe de turno. El **jefe de turno** consolidó las partes, revisó el PDF y lo envió al mandante sin problemas.
+
+### Propuestas de mejora sobre los pantallazos
+
+![Turno: iniciar el turno y cerrar sesión](prueba-usuarios/11-turno-se-repite.png)
+
+![Turno: cómo registrar el avance de un área](prueba-usuarios/12-area-pendiente-propuesta.png)
+
+![Resumen del turno: revisar el detalle antes de firmar](prueba-usuarios/13-resumen-turno-propuesta.png)
+
+---
+
+## 6. Cierre de la prueba
+
+La prueba se cierra con **dos sesiones** (11 y 18 de noviembre): 2 inspectores (P0 y P1) y 2 jefes de turno (P0 y J1). Los cambios **no se aplican todavía** a la app: quedan comprometidos para la siguiente iteración.
+
+### Resultado por tarea
+
+«Sin fricción» = la persona completó la tarea sin desviarse ni dudar. Todas las personas terminaron el flujo completo.
+
+| Tarea | Sesión piloto (P0) | Sesión 2 (P1 / J1) | Sin fricción | Umbral 80 % |
+|---|---|---|---|---|
+| T1 Iniciar el turno | Con fricción | Con fricción | 0 de 2 (0 %) | ❌ No cumple |
+| T2 Registrar avance con foto | Sin fricción | Con fricción | 1 de 2 (50 %) | ❌ No cumple |
+| T3 Área sin actividad | Con fricción | No se observó | 0 de 1 (0 %) | ❌ No cumple |
+| T4 Levantar una alerta | Sin fricción | No se observó | 1 de 1 (100 %) | ✅ Cumple |
+| T5 Revisar, firmar y salir | Con fricción | Con fricción | 0 de 2 (0 %) | ❌ No cumple |
+| T6 Consolidar y enviar (jefe) | Sin fricción | Sin fricción | 2 de 2 (100 %) | ✅ Cumple |
+| T7 Foto en el PDF | Con fricción | No se observó | 0 de 1 (0 %) | ❌ No cumple |
+
+**Efectividad global:** 4 de 11 tareas observadas sin fricción (36 %); 11 de 11 completadas (100 %).
+
+**Eficiencia y satisfacción:** los tiempos quedan en los videos del Drive. En esta ronda no se registró el cuestionario SUS, por lo que la satisfacción queda **sin medir**.
+
+### Resultado de las hipótesis
+
+| Hipótesis | Resultado | Por qué |
+|---|---|---|
+| H1 · El inspector inicia, registra y firma sin ayuda | **No se cumple** | Termina el flujo, pero en las 2 sesiones dudó al iniciar el turno y al cerrar sesión |
+| H2 · Distingue un área con avance de una sin actividad | **No se cumple** (1 sesión) | En la piloto creyó que debía marcar «sin actividad» aunque escribió el avance |
+| H3 · El jefe de turno consolida y envía sin ayuda | **Se cumple** | Los 2 jefes de turno consolidaron y enviaron sin problemas |
+| H4 · Se entiende el PDF y se encuentra la foto de cada registro | **Se cumple en parte** | Se entiende, pero en áreas con varios registros las fotos quedan al final |
+
+### Decisiones
+
+| Hallazgo | Veces | Decisión |
+|---|---|---|
+| 1 · Iniciar el turno (calendario) | 2 de 2 | **Cambio comprometido** |
+| 4 · Cerrar sesión visible | 2 de 2 | **Cambio comprometido** |
+| 7 · Revisar el detalle antes de firmar | 1 de 2 | **Cambio comprometido**: además de la fricción, es un riesgo ético (firmar sin leer, ver [análisis ético](etica.md)) |
+| 2 · Clima y botones | 1 de 2 | Pregunta para otra ronda |
+| 3 · «Declarar sin actividad» | 1 de 1 | Pregunta para otra ronda |
+| 5 · Fotos en el PDF | 1 de 1 | Riesgo aceptado por ahora (estética); se corrige junto con el PDF |
+| 6 · Tarjeta «Pendiente» | 1 de 2 | Pregunta para otra ronda |
+
+**Límites de esta prueba:** se planificaron 5 personas por perfil y se lograron 2. El SUS no se aplicó. Por eso los hallazgos con una sola ocurrencia quedan como preguntas y no como cambios. La siguiente ronda debe sumar participantes y aplicar el SUS.
 
 ---
 
