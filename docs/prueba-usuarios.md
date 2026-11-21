@@ -202,48 +202,55 @@ Los hallazgos siguen la numeración de la sesión piloto: si un problema se repi
 
 ## 6. Cierre de la prueba
 
-La prueba se cierra con **dos sesiones** (11 y 18 de noviembre): 2 inspectores (P0 y P1) y 2 jefes de turno (P0 y J1). Los cambios **no se aplican todavía** a la app: quedan comprometidos para la siguiente iteración.
+La prueba se cierra con **dos sesiones** (11 y 18 de noviembre) y **3 personas**: P0 en la piloto (hizo el flujo del inspector y el del jefe de turno), P1 como inspector y J1 como jefe de turno en la sesión 2. Los cambios **no se aplican todavía** a la app: quedan para la próxima versión.
 
 ### Resultado por tarea
 
-«Sin fricción» = la persona completó la tarea sin desviarse ni dudar. Todas las personas terminaron el flujo completo.
+Para cada tarea se anotó si la persona **tuvo dudas** (se desvió, no supo dónde tocar o preguntó). Todas las personas terminaron el flujo completo.
 
-| Tarea | Sesión piloto (P0) | Sesión 2 (P1 / J1) | Sin fricción | Umbral 80 % |
+La meta, fijada antes de la prueba, es que **al menos el 80 % de las personas haga la tarea sin dudas**. Con 2 personas, eso significa que las 2 la hagan sin dudas.
+
+| Tarea | ¿Tuvo dudas? Sesión piloto | ¿Tuvo dudas? Sesión 2 | Personas sin dudas | ¿Cumple la meta? |
 |---|---|---|---|---|
-| T1 Iniciar el turno | Con fricción | Con fricción | 0 de 2 (0 %) | ❌ No cumple |
-| T2 Registrar avance con foto | Sin fricción | Con fricción | 1 de 2 (50 %) | ❌ No cumple |
-| T3 Área sin actividad | Con fricción | No se observó | 0 de 1 (0 %) | ❌ No cumple |
-| T4 Levantar una alerta | Sin fricción | No se observó | 1 de 1 (100 %) | ✅ Cumple |
-| T5 Revisar, firmar y salir | Con fricción | Con fricción | 0 de 2 (0 %) | ❌ No cumple |
-| T6 Consolidar y enviar (jefe) | Sin fricción | Sin fricción | 2 de 2 (100 %) | ✅ Cumple |
-| T7 Foto en el PDF | Con fricción | No se observó | 0 de 1 (0 %) | ❌ No cumple |
+| T1 Iniciar el turno (calendario) | Sí | Sí | 0 de 2 | ❌ No |
+| T2a Entrar al área para registrar | No | Sí (no sabía si tocar «Pendiente») | 1 de 2 | ❌ No |
+| T2b Describir la actividad y poner foto | No | No | 2 de 2 | ✅ Sí |
+| T3 Marcar un área sin actividad | Sí | No se probó | 0 de 1 | ❌ No |
+| T4 Levantar una alerta | No | No se probó | 1 de 1 | ✅ Sí |
+| T5 Revisar, firmar y cerrar sesión | Sí (cerrar sesión) | Sí (no abrió el detalle y cerrar sesión) | 0 de 2 | ❌ No |
+| T6 Consolidar y enviar (jefe de turno) | No | No | 2 de 2 | ✅ Sí |
+| T7 Revisar el reporte PDF | No (sugirió poner cada foto junto a su descripción) | No se probó | 1 de 1 | ✅ Sí |
 
-**Efectividad global:** 4 de 11 tareas observadas sin fricción (36 %); 11 de 11 completadas (100 %).
+**En total:** de 13 tareas observadas, 7 se hicieron sin dudas (54 %) y las 13 se terminaron (100 %).
 
-**Eficiencia y satisfacción:** los tiempos quedan en los videos del Drive. En esta ronda no se registró el cuestionario SUS, por lo que la satisfacción queda **sin medir**.
+**Satisfacción:** al terminar, todas las personas dieron su opinión: la app les pareció **fácil de usar**, dijeron que **facilita y alivia el trabajo** y que solo necesita mejoras pequeñas. Es una opinión declarada, sin puntaje: en esta ronda no se aplicó el cuestionario SUS (0 a 100).
+
+**Eficiencia:** los tiempos quedan en los videos del Drive.
 
 ### Resultado de las hipótesis
 
 | Hipótesis | Resultado | Por qué |
 |---|---|---|
 | H1 · El inspector inicia, registra y firma sin ayuda | **No se cumple** | Termina el flujo, pero en las 2 sesiones dudó al iniciar el turno y al cerrar sesión |
-| H2 · Distingue un área con avance de una sin actividad | **No se cumple** (1 sesión) | En la piloto creyó que debía marcar «sin actividad» aunque escribió el avance |
+| H2 · Distingue un área con avance de una sin actividad | **No se cumple** (solo se probó en la piloto) | Creyó que debía marcar «sin actividad» aunque ya había escrito el avance |
 | H3 · El jefe de turno consolida y envía sin ayuda | **Se cumple** | Los 2 jefes de turno consolidaron y enviaron sin problemas |
-| H4 · Se entiende el PDF y se encuentra la foto de cada registro | **Se cumple en parte** | Se entiende, pero en áreas con varios registros las fotos quedan al final |
+| H4 · Se entiende el PDF y se encuentra la foto de cada registro | **Se cumple** | Lo revisó sin dudas; sugirió poner cada foto junto a su descripción (hallazgo 5) |
 
 ### Decisiones
 
-| Hallazgo | Veces | Decisión |
-|---|---|---|
-| 1 · Iniciar el turno (calendario) | 2 de 2 | **Cambio comprometido** |
-| 4 · Cerrar sesión visible | 2 de 2 | **Cambio comprometido** |
-| 7 · Revisar el detalle antes de firmar | 1 de 2 | **Cambio comprometido**: además de la fricción, es un riesgo ético (firmar sin leer, ver [análisis ético](etica.md)) |
-| 2 · Clima y botones | 1 de 2 | Pregunta para otra ronda |
-| 3 · «Declarar sin actividad» | 1 de 1 | Pregunta para otra ronda |
-| 5 · Fotos en el PDF | 1 de 1 | Riesgo aceptado por ahora (estética); se corrige junto con el PDF |
-| 6 · Tarjeta «Pendiente» | 1 de 2 | Pregunta para otra ronda |
+Todos los hallazgos quedan como **cambio comprometido** para la próxima versión de la app. Los que pasaron en las 2 sesiones van primero.
 
-**Límites de esta prueba:** se planificaron 5 personas por perfil y se lograron 2. El SUS no se aplicó. Por eso los hallazgos con una sola ocurrencia quedan como preguntas y no como cambios. La siguiente ronda debe sumar participantes y aplicar el SUS.
+| Hallazgo | ¿En cuántas sesiones pasó? | Decisión |
+|---|---|---|
+| 1 · Iniciar el turno (calendario) | En las 2 | **Cambio comprometido** |
+| 4 · Cerrar sesión visible | En las 2 | **Cambio comprometido** |
+| 7 · Revisar el detalle antes de firmar | En 1 | **Cambio comprometido**; además, firmar sin leer es un riesgo (ver [análisis ético](etica.md)) |
+| 2 · Clima y botones | En 1 | **Cambio comprometido** |
+| 3 · «Declarar sin actividad» | En 1 | **Cambio comprometido** |
+| 5 · Fotos en el PDF | En 1 | **Cambio comprometido** |
+| 6 · Tarjeta «Pendiente» | En 1 | **Cambio comprometido** |
+
+**Límites de esta prueba:** se planificaron 5 personas por perfil y participaron 3 personas en total. La satisfacción se recogió con las opiniones de los participantes, que fueron positivas, sin una encuesta con puntaje. Con más participantes se podría confirmar cuáles de los hallazgos vistos una sola vez se repiten.
 
 ---
 
