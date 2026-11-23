@@ -1,5 +1,7 @@
 "use client";
 // P2 · Registrar avance (HU-02 y HU-04): foto, GPS, empresa, descripción dictada o escrita, sin actividad.
+// Prueba de usuarios (hallazgo 3): el interruptor pregunta «¿Hoy NO hubo trabajos en esta área?», explica cuándo
+// usarlo y se apaga solo al escribir una descripción; si ya hay texto escrito, pide confirmar antes de activarlo.
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/db";
@@ -111,8 +113,14 @@ function Registrar() {
   const lng = ubic && ubic !== "buscando" ? ubic.longitud : undefined;
 
   function cambiarSinActividad(v: boolean) {
-    if (v && otrosAvances.length > 0) { setConfirmarSin(true); return; }
+    if (v && (otrosAvances.length > 0 || descripcion.trim())) { setConfirmarSin(true); return; }
     setSinActividad(v);
+  }
+
+  /** Escribir o dictar el avance significa que sí hubo trabajos: el interruptor se apaga solo. */
+  function cambiarDescripcion(v: string) {
+    setDescripcion(v);
+    if (sinActividad && v.trim()) setSinActividad(false);
   }
 
   async function guardar() {
@@ -169,14 +177,20 @@ function Registrar() {
         <Etiqueta obligatorio>Empresa</Etiqueta>
         <SelectorEmpresa empresas={base.empresas} valor={empresaId} onChange={setEmpresaId} error={intento ? errEmp : undefined} deshabilitado={bloqueado} />
 
-        <div className={cx(sinActividad && s.atenuado)} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* Atenuada pero escribible: al escribir se apaga «sin actividad». */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, opacity: sinActividad ? 0.55 : 1 }}>
           <Etiqueta obligatorio htmlFor="descripcion">Descripción del avance</Etiqueta>
-          <CampoDescripcion id="descripcion" valor={descripcion} onChange={setDescripcion} origen={origen} onOrigen={setOrigen}
+          <CampoDescripcion id="descripcion" valor={descripcion} onChange={cambiarDescripcion} origen={origen} onOrigen={setOrigen}
             error={intento ? errDesc : undefined} deshabilitado={bloqueado} />
         </div>
 
-        <Interruptor titulo="Declarar sin actividad" detalle="Área sin trabajos hoy (HU-04)" activo={sinActividad}
-          onChange={cambiarSinActividad} deshabilitado={bloqueado} />
+        <Interruptor destacado titulo="¿Hoy NO hubo trabajos en esta área?" activo={sinActividad}
+          onChange={cambiarSinActividad} deshabilitado={bloqueado}
+          detalle={<span style={{ display: "block", fontSize: 13, lineHeight: 1.45, marginTop: 2 }}>
+            Actívalo solo si no hubo actividad.<br />
+            Si ya escribiste el avance, déjalo apagado.<br />
+            Se apaga solo al escribir una descripción.
+          </span>} />
       </div>
 
       {registros.length > 0 && !base.editando && (
@@ -203,13 +217,16 @@ function Registrar() {
       )}
 
       {confirmarSin && (
-        <HojaInferior titulo="El área ya tiene registros" onCerrar={() => setConfirmarSin(false)}>
+        <HojaInferior titulo={otrosAvances.length > 0 ? "El área ya tiene registros" : "Ya escribiste un avance"} onCerrar={() => setConfirmarSin(false)}>
           <p style={{ margin: 0 }}>
-            {base.area.nombre} tiene {otrosAvances.length === 1 ? "1 avance registrado" : `${otrosAvances.length} avances registrados`} hoy.
-            Si la declaras sin actividad, esos registros se quitan del reporte.
+            {otrosAvances.length > 0
+              ? <>{base.area.nombre} tiene {otrosAvances.length === 1 ? "1 avance registrado" : `${otrosAvances.length} avances registrados`} hoy.
+                Si la declaras sin actividad, esos registros se quitan del reporte.</>
+              : <>Escribiste una descripción del avance. Si hubo trabajos, deja el interruptor apagado y guarda el registro.
+                Si lo activas, la descripción se borra.</>}
           </p>
-          <button className={s.botonSecundario} onClick={() => setConfirmarSin(false)}>Mantener los registros</button>
-          <button className={s.botonPrimario} onClick={() => { setSinActividad(true); setConfirmarSin(false); }}>Declarar sin actividad</button>
+          <button className={s.botonSecundario} onClick={() => setConfirmarSin(false)}>{otrosAvances.length > 0 ? "Mantener los registros" : "Mantener lo escrito"}</button>
+          <button className={s.botonPrimario} onClick={() => { setSinActividad(true); setDescripcion(""); setConfirmarSin(false); }}>Declarar sin actividad</button>
         </HojaInferior>
       )}
     </Pantalla>

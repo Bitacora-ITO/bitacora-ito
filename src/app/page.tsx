@@ -1,5 +1,8 @@
 "use client";
 // P1 · Turno y áreas (HU-01): fecha, turno, clima, áreas del turno con su estado y acceso al reporte.
+// Prueba de usuarios (11 y 18-11-2026): «Paso 1 · Inicia tu turno» con el calendario resaltado (hallazgo 1),
+// clima discreto y «Paso 2» con botones de color (2), «Cerrar sesión» visible (4) y botón para registrar
+// el avance dentro de la tarjeta de un área pendiente (6).
 // Semana 8 v2, navegación por rol: el inspector ve P1 y el jefe de turno («jefatura») solo la consolidación
 // del día. El administrador no pasa por aquí: Proveedor lo lleva a /admin.
 import { useEffect, useState } from "react";
@@ -8,7 +11,7 @@ import InicioJefe from "@/components/consolidacion/InicioJefe";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
-  actualizarClima, areasDelReporte, CLIMA, esEditable, ultimoEnvio,
+  actualizarClima, areasDelReporte, CLIMA, esEditable, estadoInicioTurno, ultimoEnvio,
 } from "@/lib/repositorio";
 import type { Clima } from "@/lib/types";
 import { fechaCorta, hora, haceCuanto, nombreCorto } from "@/lib/fechas";
@@ -17,9 +20,9 @@ import { mensaje, useApp } from "@/components/Proveedor";
 import FilaArea from "@/components/FilaArea";
 import MenuAjustes from "@/components/MenuAjustes";
 import AvisoCatalogo from "@/components/catalogo/AvisoCatalogo";
-import { Aviso, Cargando, Etiqueta, Giro, MensajeError, Pantalla, Segmentado, estilos as s } from "@/components/ui";
+import { Aviso, Cargando, cx, Etiqueta, Giro, MensajeError, Pantalla, Segmentado, estilos as s } from "@/components/ui";
 import {
-  IcoAjustes, IcoAlerta, IcoCalendario, IcoCheck, IcoDocumento, IcoMas, IcoSinSenal, IcoUbicacion,
+  IcoAjustes, IcoAlerta, IcoCalendario, IcoCheck, IcoDocumento, IcoFlecha, IcoMas, IcoSinSenal, IcoUbicacion,
 } from "@/components/iconos";
 import p from "./turno.module.css";
 
@@ -36,8 +39,9 @@ export default function Inicio() {
 function Turno() {
   const router = useRouter();
   const app = useApp();
-  const { contexto, reporteHoyId, conectado, pendientes, ultimaSync, errorSync, sincronizando } = app;
+  const { contexto, reporteHoyId, conectado, pendientes, ultimaSync, errorSync, sincronizando, salir } = app;
   const [ajustes, setAjustes] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
   const [error, setError] = useState<string>();
   const [, setTic] = useState(0);
   useEffect(() => { const t = setInterval(() => setTic((n) => n + 1), 30_000); return () => clearInterval(t); }, []);
@@ -45,19 +49,21 @@ function Turno() {
   const { datos, error: errorCarga } = useConsulta(async () => {
     const reporte = await db.reportes.get(reporteHoyId);
     if (!reporte) return null;
-    const [areas, alertas, editable, envio] = await Promise.all([
+    const [areas, alertas, editable, envio, inicioTurno] = await Promise.all([
       areasDelReporte(reporte.id, pendientes),
       db.alertas.where("reporteId").equals(reporte.id).toArray(),
       esEditable(reporte),
       ultimoEnvio(reporte.id),
+      estadoInicioTurno(),
     ]);
     const sinSubir = (await db.registros.where("reporteId").equals(reporte.id).toArray()).filter((r) => !r.sincronizadoEn).length;
-    return { reporte, areas, alertas, editable, envio, sinSubir };
+    return { reporte, areas, alertas, editable, envio, sinSubir, inicioTurno };
   }, [reporteHoyId, pendientes]);
 
   if (errorCarga) return <Pantalla><MensajeError>{errorCarga.message}</MensajeError></Pantalla>;
   if (!datos) return <Cargando texto="Cargando el turno…" />;
-  const { reporte, areas, alertas, editable, envio, sinSubir } = datos;
+  const { reporte, areas, alertas, editable, envio, sinSubir, inicioTurno } = datos;
+  const falteIniciar = editable && !!inicioTurno && !inicioTurno.confirmado;
 
   const resueltas = areas.filter((a) => a.estado !== "pendiente").length;
   const hayRegistros = areas.some((a) => a.registros.length > 0);
@@ -66,6 +72,11 @@ function Turno() {
   async function cambiarClima(campo: "climaTurno" | "climaProyeccion", v: Clima) {
     setError(undefined);
     try { await actualizarClima(reporte.id, campo, v); } catch (e) { setError(mensaje(e)); }
+  }
+
+  async function cerrarSesion() {
+    setSaliendo(true); setError(undefined);
+    try { await salir(); } catch (e) { setError(mensaje(e)); setSaliendo(false); }
   }
 
   function revisar() {
@@ -110,13 +121,30 @@ function Turno() {
           <button className={p.iconoPlano} onClick={() => setAjustes(true)} aria-label="Ajustes de la demostración">
             <IcoAjustes />
           </button>
-          <button className={s.botonIcono} onClick={() => router.push("/historial")} aria-label="Historial">
+          <button className={cx(s.botonIcono, falteIniciar && p.calendarioResaltado)}
+            onClick={() => router.push(falteIniciar ? "/historial/inicio?desde=turno" : "/historial")}
+            aria-label={falteIniciar ? "Iniciar el turno en el calendario" : "Historial"}>
             <IcoCalendario />
           </button>
         </div>
       </div>
 
       <AvisoCatalogo />
+
+      {falteIniciar ? (
+        <button className={p.paso1} onClick={() => router.push("/historial/inicio?desde=turno")}>
+          <span style={{ flex: 1 }}>
+            <b>Paso 1 · Inicia tu turno</b>
+            <span>Toca aquí o el calendario y marca el día de inicio.</span>
+          </span>
+          <IcoFlecha />
+        </button>
+      ) : editable && inicioTurno?.confirmado ? (
+        <p className={p.turnoIniciado}>
+          <IcoCheck size={16} /> Turno iniciado el {fechaCorta(inicioTurno.inicio)} ·{" "}
+          <button className={s.enlace} style={{ padding: 0, minHeight: 0 }} onClick={() => router.push("/historial/inicio?desde=turno")}>Cambiar</button>
+        </p>
+      ) : null}
 
       {!editable && (
         <Aviso tono={reporte.estado === "enviado" ? "verde" : "ambar"} icono={<IcoCheck />}
@@ -127,11 +155,11 @@ function Turno() {
         </Aviso>
       )}
 
-      <Etiqueta>Clima del turno</Etiqueta>
-      <Segmentado etiqueta="Clima del turno" opciones={OPC_CLIMA} valor={reporte.climaTurno}
+      <p className={p.etiquetaClima}>Clima del turno</p>
+      <Segmentado discreto etiqueta="Clima del turno" opciones={OPC_CLIMA} valor={reporte.climaTurno}
         onChange={(v) => cambiarClima("climaTurno", v)} deshabilitado={!editable} />
-      <Etiqueta>Proyección de mañana</Etiqueta>
-      <Segmentado etiqueta="Proyección de mañana" opciones={OPC_CLIMA} valor={reporte.climaProyeccion}
+      <p className={p.etiquetaClima}>Proyección de mañana</p>
+      <Segmentado discreto etiqueta="Proyección de mañana" opciones={OPC_CLIMA} valor={reporte.climaProyeccion}
         onChange={(v) => cambiarClima("climaProyeccion", v)} deshabilitado={!editable} />
       {error && <MensajeError>{error}</MensajeError>}
 
@@ -142,24 +170,27 @@ function Turno() {
           <span className={p.vacioIcono}><IcoUbicacion size={28} /></span>
           <b>Primer día del contrato</b>
           <p className={s.textoSuave}>Aún no hay áreas. Elige la primera<br />para empezar a registrar.</p>
-          <button className={s.botonSecundario} style={{ width: "auto", marginTop: 8 }} onClick={() => router.push("/agregar-area")} disabled={!editable}>
+          {editable && <p className={p.paso2}>Paso 2 · Agrega cada área donde trabajaste hoy</p>}
+          <button className={cx(s.botonPrimario, p.botonArea)} style={{ width: "auto", marginTop: 4, padding: "0 20px" }} onClick={() => router.push("/agregar-area")} disabled={!editable}>
             <IcoMas /> Agregar primera área
           </button>
         </div>
       ) : (
         <div className={s.lista}>
           {areas.map((a) => (
-            <FilaArea key={a.areaTurno.id} area={a} onClick={() => router.push(`/registrar?at=${a.areaTurno.id}`)} />
+            <FilaArea key={a.areaTurno.id} area={a} onClick={() => router.push(`/registrar?at=${a.areaTurno.id}`)}
+              accion={editable ? "Registrar avance de esta área" : undefined} />
           ))}
         </div>
       )}
 
+      {!vacio && editable && <p className={p.paso2}>Paso 2 · Agrega cada área donde trabajaste hoy</p>}
       {!vacio && (
         <div className={p.acciones}>
-          <button className={`${s.botonSecundario} ${s.botonChico}`} onClick={() => router.push("/agregar-area")} disabled={!editable}>
+          <button className={cx(s.botonPrimario, s.botonChico, p.botonArea)} onClick={() => router.push("/agregar-area")} disabled={!editable}>
             <IcoMas /> Agregar área
           </button>
-          <button className={`${s.botonSecundario} ${s.botonChico}`} onClick={() => router.push("/alerta")} disabled={!editable}>
+          <button className={cx(s.botonPrimario, s.botonChico, p.botonAlerta)} onClick={() => router.push("/alerta")} disabled={!editable}>
             <IcoAlerta /> Nueva alerta
           </button>
         </div>
@@ -170,6 +201,13 @@ function Turno() {
           {alertas.some((a) => a.criticidad === "alta") && <> · <span style={{ color: "var(--rojo)" }}>{alertas.filter((a) => a.criticidad === "alta").length} alta</span></>}
         </p>
       )}
+
+      {/* Al final del contenido y siempre visible (hallazgo 4): antes estaba solo dentro de los tres puntos. */}
+      <div className={p.filaSalir}>
+        <button className={p.cerrarSesion} onClick={cerrarSesion} disabled={saliendo}>
+          {saliendo ? <><Giro chico /> Subiendo lo registrado…</> : <>Cerrar sesión <IcoFlecha size={16} /></>}
+        </button>
+      </div>
 
       {ajustes && <MenuAjustes onCerrar={() => setAjustes(false)} />}
     </Pantalla>

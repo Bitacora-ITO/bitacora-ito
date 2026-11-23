@@ -1,5 +1,7 @@
 "use client";
 // P4 · Borrador del reporte (HU-06): 04a cargando, 04b con datos, 04c áreas sin resolver (regla 2).
+// Prueba de usuarios (hallazgo 7): el inspector firmaba sin abrir las secciones. Ahora un aviso pide abrir cada
+// una, la primera viene abierta, las demás muestran «Ver detalle» y el aviso pasa a verde al revisarlas todas.
 import { useEffect, useState } from "react";
 import { useSesion } from "@/lib/sesion";
 import { useRouter } from "next/navigation";
@@ -12,7 +14,7 @@ import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import FilaArea from "@/components/FilaArea";
 import {
-  Aviso, Chip, Encabezado, Etiqueta, Giro, MensajeError, Miniatura, Pantalla, estilos as s,
+  Aviso, Chip, cx, Encabezado, Etiqueta, Giro, MensajeError, Miniatura, Pantalla, estilos as s,
 } from "@/components/ui";
 import { IcoAlerta, IcoCheck, IcoFlecha } from "@/components/iconos";
 import b from "./borrador.module.css";
@@ -24,7 +26,9 @@ export default function Borrador() {
   const { contexto, reporteHoyId } = useApp();
   const sesion = useSesion();
   const [paso, setPaso] = useState(0);
-  const [abierto, setAbierto] = useState<string | null>(null);
+  // Varias secciones pueden quedar abiertas; `vistas` recuerda cuáles se revisaron.
+  const [abiertas, setAbiertas] = useState<Set<string>>(() => new Set(["areas"]));
+  const [vistas, setVistas] = useState<Set<string>>(() => new Set(["areas"]));
   const [error, setError] = useState<string>();
 
   // 04a: el borrador se arma por partes; se muestra el avance un instante.
@@ -112,7 +116,11 @@ export default function Borrador() {
 
   const { porCriticidad: c } = resumen;
   const partesCrit = (["alta", "media", "baja"] as const).filter((k) => c[k] > 0).map((k) => `${c[k]} ${CRITICIDAD[k].toLowerCase()}`);
-  const toggle = (k: string) => setAbierto((v) => (v === k ? null : k));
+  const toggle = (k: string) => {
+    setAbiertas((v) => { const n = new Set(v); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+    setVistas((v) => new Set(v).add(k));
+  };
+  const faltanVer = SECCIONES.filter((k) => !vistas.has(k)).length;
 
   return (
     <Pantalla pie={
@@ -143,9 +151,19 @@ export default function Borrador() {
         </div>
       </div>
 
+      {faltanVer > 0 ? (
+        <Aviso tono="ambar" icono={<IcoAlerta />} titulo="Antes de firmar, abre cada sección">
+          y revisa que tus registros estén bien. {faltanVer === 1 ? "Falta 1 sección." : `Faltan ${faltanVer} secciones.`}
+        </Aviso>
+      ) : (
+        <Aviso tono="verde" icono={<IcoCheck />} titulo="Revisaste todas las secciones">
+          Si todo está bien, cierra y envía tu parte al jefe de turno.
+        </Aviso>
+      )}
+
       <Etiqueta>Contenido</Etiqueta>
       <div className={s.lista}>
-        <Seccion titulo="Áreas con sus registros" detalle={`${areas.length} áreas · ${resumen.sinActividad} sin actividad`} abierto={abierto === "areas"} onClick={() => toggle("areas")}>
+        <Seccion titulo="Áreas con sus registros" detalle={`${areas.length} áreas · ${resumen.sinActividad} sin actividad`} abierto={abiertas.has("areas")} vista={vistas.has("areas")} onClick={() => toggle("areas")}>
           {areas.map((a, i) => (
             <button key={a.areaTurno.id} className={b.subitem} onClick={() => router.push(`/registrar?at=${a.areaTurno.id}`)}>
               <b>{i + 1}.0 {a.area.nombre} · {a.empresa.nombre}</b>
@@ -155,7 +173,7 @@ export default function Borrador() {
             </button>
           ))}
         </Seccion>
-        <Seccion titulo="Tabla de alertas" detalle={`${resumen.alertas.length} alertas por columna`} abierto={abierto === "alertas"} onClick={() => toggle("alertas")}>
+        <Seccion titulo="Tabla de alertas" detalle={`${resumen.alertas.length} alertas por columna`} abierto={abiertas.has("alertas")} vista={vistas.has("alertas")} onClick={() => toggle("alertas")}>
           {resumen.alertas.length === 0 && <span className={s.textoSuave}>Sin alertas en el turno.</span>}
           {resumen.alertas.map((al) => (
             <div key={al.id} className={b.subitem} style={{ cursor: "default" }}>
@@ -169,10 +187,10 @@ export default function Borrador() {
             </div>
           ))}
         </Seccion>
-        <Seccion titulo="Anexo fotográfico" detalle={`${resumen.fotos} ${resumen.fotos === 1 ? "fotografía" : "fotografías"}`} abierto={abierto === "fotos"} onClick={() => toggle("fotos")}>
+        <Seccion titulo="Anexo fotográfico" detalle={`${resumen.fotos} ${resumen.fotos === 1 ? "fotografía" : "fotografías"}`} abierto={abiertas.has("fotos")} vista={vistas.has("fotos")} onClick={() => toggle("fotos")}>
           <div className={s.fotos}>{fotos.map((f, i) => <Miniatura key={f.id} blob={f.imagen} alt={`Fotografía ${i + 1}`} />)}</div>
         </Seccion>
-        <Seccion titulo="Clima del turno" detalle={`${CLIMA[reporte.climaTurno]} · mañana ${CLIMA[reporte.climaProyeccion].toLowerCase()}`} abierto={abierto === "clima"} onClick={() => toggle("clima")}>
+        <Seccion titulo="Clima del turno" detalle={`${CLIMA[reporte.climaTurno]} · mañana ${CLIMA[reporte.climaProyeccion].toLowerCase()}`} abierto={abiertas.has("clima")} vista={vistas.has("clima")} onClick={() => toggle("clima")}>
           <button className={s.enlace} style={{ alignSelf: "flex-start", padding: 0 }} onClick={() => router.push("/")}>Cambiar en el turno</button>
         </Seccion>
       </div>
@@ -180,17 +198,22 @@ export default function Borrador() {
   );
 }
 
-function Seccion({ titulo, detalle, abierto, onClick, children }: {
-  titulo: string; detalle: string; abierto: boolean; onClick: () => void; children: React.ReactNode;
+const SECCIONES = ["areas", "alertas", "fotos", "clima"] as const;
+
+function Seccion({ titulo, detalle, abierto, vista, onClick, children }: {
+  titulo: string; detalle: string; abierto: boolean; vista: boolean; onClick: () => void; children: React.ReactNode;
 }) {
   return (
-    <div className={s.tarjeta} style={{ padding: 0 }}>
+    <div className={cx(s.tarjeta, abierto && b.seccionAbierta)} style={{ padding: 0 }}>
       <button className={b.cabeceraSeccion} onClick={onClick} aria-expanded={abierto}>
         <span style={{ flex: 1 }}>
           <b style={{ display: "block" }}>{titulo}</b>
           <span className={s.textoSuave}>{detalle}</span>
         </span>
-        <IcoFlecha className={abierto ? b.girado : undefined} />
+        <span className={b.pildora}>
+          {abierto ? <>Ocultar <IcoFlecha size={14} className={b.arriba} /></>
+            : <>{vista && <IcoCheck size={14} />}Ver detalle <IcoFlecha size={14} /></>}
+        </span>
       </button>
       {abierto && <div className={b.contenidoSeccion}>{children}</div>}
     </div>

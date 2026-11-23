@@ -9,6 +9,11 @@ export interface LineaInforme {
   tipo: "normal" | "sin_actividad";
   /** Prefijo en negrita, p. ej. "Calicatas OA-13 (Macrogranulometría):". */
   destacado?: string;
+  /**
+   * `ref` de las fotos del registro que termina en esta línea. El formato «bitacora» las imprime justo
+   * después de la descripción (prueba de usuarios, hallazgo 5); el del mandante las sigue mostrando en su columna.
+   */
+  fotos?: string[];
 }
 
 export interface SubseccionInforme {
@@ -21,6 +26,8 @@ export interface FotoInforme {
   /** data URL (image/jpeg o image/png) o ruta pública "/demo/fotos/x.jpg". */
   src: string;
   pie?: string;
+  /** Identificador estable (id de la fotografía) para ubicarla junto a su registro o alerta. */
+  ref?: string;
 }
 
 export interface SeccionInforme {
@@ -36,6 +43,8 @@ export interface AlertaInforme {
   empresa?: string; // "TECNASIC"
   texto: string;
   criticidad?: Criticidad; // el formato real no la trae; la app sí
+  /** `ref` de las fotos de la alerta: el formato «bitacora» las imprime junto a la alerta. */
+  fotos?: string[];
 }
 
 export interface DatosInforme {

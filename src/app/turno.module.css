@@ -13,3 +13,24 @@
 .estadoSync { display: flex; align-items: center; gap: 8px; color: var(--gris); font-size: 15px; margin: 0; min-height: 32px; }
 .titulo { font-size: 22px; white-space: nowrap; }
 .iconoPlano { width: 40px; height: 44px; border: 0; background: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; }
+
+/* Prueba de usuarios (11 y 18-11-2026) */
+.paso1 {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; cursor: pointer;
+  padding: 12px 12px 12px 16px; border-radius: var(--radio); border: 1.5px solid var(--teal); background: #eafaf7;
+}
+.paso1 b { display: block; font-size: 16px; }
+.paso1 span span { font-size: 14px; color: var(--ink); }
+.calendarioResaltado { border: 2px solid var(--teal) !important; box-shadow: 0 0 0 3px var(--teal-bg); }
+.turnoIniciado { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--gris); flex-wrap: wrap; }
+.etiquetaClima { margin: 6px 0 0; font-size: 13px; color: var(--gris); }
+.paso2 { margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #0f8f83; }
+.botonArea { min-height: 52px; }
+.botonAlerta { background: #f2b53a; color: var(--ink); }
+.botonAlerta:disabled { background: #f6dca0; }
+.filaSalir { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 16px; }
+.cerrarSesion {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; cursor: pointer;
+  border-radius: 10px; border: 1.5px solid var(--rojo); background: var(--blanco); color: var(--rojo); font-weight: 600; font-size: 15px;
+}
+.cerrarSesion:disabled { opacity: .6; cursor: default; }

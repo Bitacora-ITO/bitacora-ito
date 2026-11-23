@@ -1,7 +1,8 @@
 "use client";
 // P7 · Inicio de turno (08d): tocar un día lo fija como primer día del turno y se ve el ciclo 7x7.
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+// Desde el «Paso 1» de la pantalla Turno llega con ?desde=turno y, al guardar, vuelve al Turno.
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { fijarInicioTurno, rolDelUsuario } from "@/lib/repositorio";
 import { esDiaTrabajo, esInicioTurno, proximoInicioTurno } from "@/lib/rol";
 import { capitalizar, fechaConDia, hoyLocal, nombreMes } from "@/lib/fechas";
@@ -13,8 +14,14 @@ import { IcoAtras, IcoFlecha } from "@/components/iconos";
 import l from "@/components/listas.module.css";
 import h from "../historial.module.css";
 
-export default function InicioTurno() {
+export default function Pagina() {
+  return <Suspense fallback={<Cargando />}><InicioTurno /></Suspense>;
+}
+
+function InicioTurno() {
   const router = useRouter();
+  const desdeTurno = useSearchParams().get("desde") === "turno";
+  const volver = desdeTurno ? { texto: "Turno", href: "/" } : { texto: "Historial", href: "/historial" };
   const hoy = hoyLocal();
   const { datos: rol } = useConsulta(() => rolDelUsuario(), []);
   const [elegido, setElegido] = useState<string>();
@@ -36,7 +43,7 @@ export default function InicioTurno() {
     setGuardando(true); setError(undefined);
     try {
       await fijarInicioTurno(inicio);
-      router.push("/historial");
+      router.push(volver.href);
     } catch (e) { setError(mensaje(e)); setGuardando(false); }
   }
 
@@ -45,11 +52,11 @@ export default function InicioTurno() {
       <>
         {error && <MensajeError>{error}</MensajeError>}
         <button className={s.botonPrimario} onClick={guardar} disabled={guardando}>
-          {guardando ? <><Giro chico /> Guardando…</> : "Guardar inicio de turno"}
+          {guardando ? <><Giro chico /> Guardando…</> : desdeTurno ? "Iniciar mi turno" : "Guardar inicio de turno"}
         </button>
       </>
     }>
-      <Encabezado volver={{ texto: "Historial", href: "/historial" }} titulo="Inicio de turno" />
+      <Encabezado volver={volver} titulo="Inicio de turno" />
       <p style={{ margin: "0 0 4px", fontSize: 15 }}>
         Toca el primer día de tu turno. Desde ahí el rol {rol.diasTrabajo}×{rol.diasDescanso} calcula solo los días de trabajo y de descanso.
       </p>

@@ -1,6 +1,9 @@
 // Reporte diario con el diseño propio de Bitácora ITO: hoja carta, encabezado con el logo de la app,
 // ficha del turno, resumen en cifras, alertas ordenadas por criticidad y actividades por área con sus
-// fotografías en grilla. Usa los mismos datos (DatosInforme) que el formato del mandante.
+// fotografías. Usa los mismos datos (DatosInforme) que el formato del mandante.
+// Prueba de usuarios (hallazgo 5): cada foto va justo después de la descripción de su registro y la foto de
+// una alerta, junto a esa alerta. Las fotos sin registro conocido quedan al final de su área, como antes.
+// La numeración «Foto N» sigue el orden en que aparecen en el documento.
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/types";
 import type { Clima, ColumnaAlerta, Criticidad } from "../../types";
@@ -131,6 +134,52 @@ function Cifra({ valor, etiqueta, nota, alerta }: { valor: number; etiqueta: str
   );
 }
 
+interface FotosDocumento {
+  /** ref → foto preparada (las fotos viven en las secciones; ahí se cargan y miden). */
+  porRef: Map<string, FotoPreparada>;
+  /** Número «Foto N» según el orden de aparición. */
+  numero: Map<FotoPreparada, number>;
+  /** Dónde se imprime cada foto ubicada: junto a su alerta o a su línea (el objeto de datos). */
+  duenio: Map<FotoPreparada, AlertaInforme | LineaInforme>;
+}
+
+const ordenarAlertas = (datos: DatosInforme) =>
+  COLUMNAS.flatMap((columna) => datos.alertas[columna].map((alerta) => ({ alerta, columna }))).sort(
+    (a, b) => (a.alerta.criticidad ? CRITICIDAD[a.alerta.criticidad].orden : 3) - (b.alerta.criticidad ? CRITICIDAD[b.alerta.criticidad].orden : 3),
+  );
+
+const deRefs = (refs: string[] | undefined, f: FotosDocumento) =>
+  (refs ?? []).map((r) => f.porRef.get(r)).filter((x): x is FotoPreparada => !!x);
+
+/** Fotos de la sección que no quedaron junto a una línea ni a una alerta. */
+const sueltas = (s: SeccionPreparada, f: FotosDocumento) => s.fotos.filter((x) => !f.duenio.has(x));
+
+/** Fotos que se imprimen justo después de esta línea o alerta. */
+const propiasDe = (d: AlertaInforme | LineaInforme, f: FotosDocumento) => deRefs(d.fotos, f).filter((x) => f.duenio.get(x) === d);
+
+function prepararFotos(datos: DatosInforme, secciones: SeccionPreparada[]): FotosDocumento {
+  const porRef = new Map<string, FotoPreparada>();
+  for (const s of secciones) for (const x of s.fotos) if (x.ref) porRef.set(x.ref, x);
+  const f: FotosDocumento = { porRef, numero: new Map(), duenio: new Map() };
+  const numerar = (lista: FotoPreparada[]) => {
+    for (const x of lista) if (!f.numero.has(x)) f.numero.set(x, f.numero.size + 1);
+  };
+  for (const { alerta } of ordenarAlertas(datos)) {
+    const fotos = deRefs(alerta.fotos, f).filter((x) => !f.duenio.has(x));
+    fotos.forEach((x) => f.duenio.set(x, alerta));
+    numerar(fotos);
+  }
+  for (const s of secciones) {
+    for (const sub of s.subsecciones) for (const l of sub.lineas) {
+      const fotos = deRefs(l.fotos, f).filter((x) => !f.duenio.has(x));
+      fotos.forEach((x) => f.duenio.set(x, l));
+      numerar(fotos);
+    }
+    numerar(sueltas(s, f));
+  }
+  return f;
+}
+
 const esSinActividad = (s: SeccionPreparada) =>
   s.subsecciones.length > 0 && s.subsecciones.every((sub) => sub.lineas.length > 0 && sub.lineas.every((l) => l.tipo === "sin_actividad"));
 
@@ -158,10 +207,20 @@ function Resumen({ datos, secciones }: { datos: DatosInforme; secciones: Seccion
   );
 }
 
-function Alerta({ alerta, columna }: { alerta: AlertaInforme; columna: ColumnaAlerta }) {
+function Alerta({ alerta, columna, fotos }: { alerta: AlertaInforme; columna: ColumnaAlerta; fotos: FotosDocumento }) {
+  const propias = propiasDe(alerta, fotos);
+  return (
+    <View wrap={false} style={{ marginBottom: 6 }}>
+      <TarjetaAlerta alerta={alerta} columna={columna} />
+      {propias.length ? <FilasFotos fotos={propias} numeros={fotos.numero} area={NOMBRE_COLUMNA[columna]} margen={6} /> : null}
+    </View>
+  );
+}
+
+function TarjetaAlerta({ alerta, columna }: { alerta: AlertaInforme; columna: ColumnaAlerta }) {
   const c = alerta.criticidad ? CRITICIDAD[alerta.criticidad] : null;
   return (
-    <View wrap={false} style={{ flexDirection: "row", marginBottom: 6, backgroundColor: C.fondo, borderRadius: 3 }}>
+    <View style={{ flexDirection: "row", backgroundColor: C.fondo, borderRadius: 3 }}>
       <View style={{ width: 3, backgroundColor: c?.color ?? C.grisSuave, borderTopLeftRadius: 3, borderBottomLeftRadius: 3 }} />
       <View style={{ flexGrow: 1, flexShrink: 1, paddingVertical: 6, paddingHorizontal: 9 }}>
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
@@ -180,15 +239,13 @@ function Alerta({ alerta, columna }: { alerta: AlertaInforme; columna: ColumnaAl
   );
 }
 
-function Alertas({ datos }: { datos: DatosInforme }) {
-  const lista = COLUMNAS.flatMap((columna) => datos.alertas[columna].map((alerta) => ({ alerta, columna }))).sort(
-    (a, b) => (a.alerta.criticidad ? CRITICIDAD[a.alerta.criticidad].orden : 3) - (b.alerta.criticidad ? CRITICIDAD[b.alerta.criticidad].orden : 3),
-  );
+function Alertas({ datos, fotos }: { datos: DatosInforme; fotos: FotosDocumento }) {
+  const lista = ordenarAlertas(datos);
   return (
     <View>
       <TituloBloque extra={lista.length ? "ordenadas por criticidad" : undefined}>Alertas del turno</TituloBloque>
       {lista.length ? (
-        lista.map((a, i) => <Alerta key={i} alerta={a.alerta} columna={a.columna} />)
+        lista.map((a, i) => <Alerta key={i} alerta={a.alerta} columna={a.columna} fotos={fotos} />)
       ) : (
         <Text style={{ fontSize: 9.5, color: C.gris }}>No se registraron alertas en este turno.</Text>
       )}
@@ -217,7 +274,7 @@ function Linea({ linea }: { linea: LineaInforme }) {
   );
 }
 
-function Subseccion({ sub }: { sub: SubseccionInforme }) {
+function Subseccion({ sub, fotos, area }: { sub: SubseccionInforme; fotos: FotosDocumento; area: string }) {
   const titulo = [sub.numero, sub.titulo].filter(Boolean).join("  ");
   return (
     <View style={{ marginTop: 6 }}>
@@ -226,10 +283,32 @@ function Subseccion({ sub }: { sub: SubseccionInforme }) {
           {titulo}
         </Text>
       ) : null}
-      {sub.lineas.map((l, i) => (
-        <Linea key={i} linea={l} />
-      ))}
+      {sub.lineas.map((l, i) => {
+        const propias = propiasDe(l, fotos);
+        return (
+          <View key={i}>
+            <Linea linea={l} />
+            {propias.length ? <FilasFotos fotos={propias} numeros={fotos.numero} area={area} margen={6} /> : null}
+          </View>
+        );
+      })}
     </View>
+  );
+}
+
+function FilasFotos({ fotos, numeros, area, margen }: { fotos: FotoPreparada[]; numeros: Map<FotoPreparada, number>; area: string; margen: number }) {
+  const filas: FotoPreparada[][] = [];
+  for (let i = 0; i < fotos.length; i += FOTOS_POR_FILA) filas.push(fotos.slice(i, i + FOTOS_POR_FILA));
+  return (
+    <>
+      {filas.map((fila, f) => (
+        <View key={f} wrap={false} style={{ flexDirection: "row", gap: ESPACIO_FOTOS, marginTop: f === 0 ? margen : 8 }}>
+          {fila.map((foto, i) => (
+            <Foto key={i} foto={foto} numero={numeros.get(foto) ?? 0} area={area} />
+          ))}
+        </View>
+      ))}
+    </>
   );
 }
 
@@ -247,14 +326,18 @@ function Foto({ foto, numero, area }: { foto: FotoPreparada; numero: number; are
   );
 }
 
-function Seccion({ seccion, numero }: { seccion: SeccionPreparada; numero: number }) {
+function Seccion({ seccion, numero, fotos }: { seccion: SeccionPreparada; numero: number; fotos: FotosDocumento }) {
   const area = nombrePropio(seccion.titulo);
+  const resto = sueltas(seccion, fotos);
   const filas: FotoPreparada[][] = [];
-  for (let i = 0; i < seccion.fotos.length; i += FOTOS_POR_FILA) filas.push(seccion.fotos.slice(i, i + FOTOS_POR_FILA));
+  for (let i = 0; i < resto.length; i += FOTOS_POR_FILA) filas.push(resto.slice(i, i + FOTOS_POR_FILA));
+  // Fotos que se imprimen en esta área: las de sus líneas y las sueltas (las de alertas van con la alerta).
+  const enLineas = seccion.subsecciones.reduce((n, sub) => n + sub.lineas.reduce((m, l) => m + propiasDe(l, fotos).length, 0), 0);
+  const cuantas = enLineas + resto.length;
   const sinActividad = esSinActividad(seccion);
   const renglones = seccion.subsecciones.reduce((n, s) => n + 1 + s.lineas.reduce((m, l) => m + Math.ceil((l.texto.length + 1) / 105), 0), 0);
   // Una sección corta (texto breve y una fila de fotos) no se parte entre páginas.
-  const corta = renglones <= 10 && filas.length <= 1;
+  const corta = renglones <= 10 && cuantas <= FOTOS_POR_FILA && (filas.length === 0 || enLineas === 0);
   return (
     <View wrap={!corta} style={{ marginTop: numero === 1 ? 0 : 14, paddingTop: numero === 1 ? 0 : 12, borderTopWidth: numero === 1 ? 0 : 0.75, borderTopColor: C.borde }}>
       <View minPresenceAhead={70} style={{ flexDirection: "row", alignItems: "center" }}>
@@ -262,9 +345,9 @@ function Seccion({ seccion, numero }: { seccion: SeccionPreparada; numero: numbe
           <Text style={{ fontSize: 9, fontWeight: "bold", color: C.turquesaOscuro }}>{seccion.numero}</Text>
         </View>
         <Text style={{ fontSize: 11.5, fontWeight: "bold", color: C.tinta, flexGrow: 1 }}>{area}</Text>
-        {seccion.fotos.length ? (
+        {cuantas ? (
           <Text style={{ fontSize: 8, color: C.grisSuave }}>
-            {seccion.fotos.length} {seccion.fotos.length === 1 ? "foto" : "fotos"}
+            {cuantas} {cuantas === 1 ? "foto" : "fotos"}
           </Text>
         ) : sinActividad ? (
           <Text style={{ fontSize: 8, color: C.grisSuave }}>sin actividad</Text>
@@ -272,21 +355,16 @@ function Seccion({ seccion, numero }: { seccion: SeccionPreparada; numero: numbe
       </View>
       <View style={{ paddingLeft: 2 }}>
         {seccion.subsecciones.map((s, i) => (
-          <Subseccion key={i} sub={s} />
+          <Subseccion key={i} sub={s} fotos={fotos} area={area} />
         ))}
       </View>
-      {filas.map((fila, f) => (
-        <View key={f} wrap={false} style={{ flexDirection: "row", gap: ESPACIO_FOTOS, marginTop: f === 0 ? 10 : 8 }}>
-          {fila.map((foto, i) => (
-            <Foto key={i} foto={foto} numero={f * FOTOS_POR_FILA + i + 1} area={area} />
-          ))}
-        </View>
-      ))}
+      {resto.length ? <FilasFotos fotos={resto} numeros={fotos.numero} area={area} margen={10} /> : null}
     </View>
   );
 }
 
 export default function DocumentoBitacora({ datos, secciones, logo, familia = FAMILIA }: PropsDocumentoBitacora) {
+  const fotos = prepararFotos(datos, secciones);
   return (
     <Document
       title={`Reporte diario de inspección N.º ${numeroCorto(datos.correlativo)} · ${datos.fecha}`}
@@ -303,12 +381,12 @@ export default function DocumentoBitacora({ datos, secciones, logo, familia = FA
         <Encabezado datos={datos} logo={logo} />
         <Ficha datos={datos} />
         <Resumen datos={datos} secciones={secciones} />
-        <Alertas datos={datos} />
+        <Alertas datos={datos} fotos={fotos} />
         <TituloBloque extra={secciones.length ? `${secciones.length} ${secciones.length === 1 ? "área" : "áreas"}` : undefined}>
           Actividades por área
         </TituloBloque>
         {secciones.length ? (
-          secciones.map((s, i) => <Seccion key={i} seccion={s} numero={i + 1} />)
+          secciones.map((s, i) => <Seccion key={i} seccion={s} numero={i + 1} fotos={fotos} />)
         ) : (
           <Text style={{ fontSize: 9.5, color: C.gris }}>No hay áreas registradas en este turno.</Text>
         )}
