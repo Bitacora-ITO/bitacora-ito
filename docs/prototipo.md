@@ -249,3 +249,27 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 4. El jefe consolida y se envía el correo real.
 
 Resultado: 30 de 30 comprobaciones bien. Las pruebas encontraron 4 errores que se corrigieron antes de publicar.
+
+## 7. Cambios de la prueba de usuarios (versión 3)
+
+La [prueba de usuarios](prueba-usuarios.md#6-cierre-de-la-prueba) (11 y 18 de noviembre) dejó 7 cambios comprometidos. Se aplicaron en la app siguiendo los pantallazos de propuesta y quedaron también en Figma (ver [GUIA-FIGMA](../GUIA-FIGMA.md)).
+
+| Pantalla | Cambio | Hallazgo | Historia |
+|---|---|---|---|
+| P1 Turno | «Paso 1 · Inicia tu turno» y calendario resaltado hasta marcar el inicio del ciclo 7x7 | 1 | HU-01 |
+| P1 Turno | Clima discreto; «Paso 2» con «Agregar área» (turquesa) y «Nueva alerta» (amarillo) | 2 | HU-01 |
+| P1 Turno | Botón «Registrar avance de esta área» en la tarjeta «Pendiente» | 6 | HU-01 |
+| P1 Turno y parte firmada | «Cerrar sesión» a la vista y «Terminé: cerrar sesión» al firmar | 4 | HU-11 |
+| P2 Registrar avance | «¿Hoy NO hubo trabajos en esta área?», con explicación; se apaga al escribir | 3 | HU-04 |
+| P4 Borrador | «Antes de firmar, abre cada sección», «Ver detalle» y aviso verde al revisar todas | 7 | HU-06 |
+| Reporte PDF (jefe) | Cada foto después de su descripción; la de una alerta, junto a la alerta | 5 | HU-14 |
+| Inicio de turno | Desde el «Paso 1» se vuelve al turno con «Iniciar mi turno» | 1 | HU-10 |
+
+**Decisiones de la versión 3**
+
+- **El «Paso 1» aparece una vez por ciclo 7x7**, no todos los días: el rol se marca solo el primer día del turno. La confirmación se guarda por inspector en el teléfono.
+- **«Cerrar sesión» va al final del contenido**, no en la barra fija de abajo, para no tapar las tarjetas de las áreas.
+- **El aviso del borrador no bloquea la firma:** pide revisar, pero la decisión sigue siendo del inspector (ver [análisis ético](etica.md)).
+- **Solo cambia el PDF «bitácora»**, que es el que envía el jefe de turno. La réplica del formato del mandante se mantiene.
+
+**Validación:** el set de pruebas automáticas recorrió el flujo completo con datos inventados, sin envío de correo.

@@ -250,6 +250,22 @@ Todos los hallazgos quedan como **cambio comprometido** para la próxima versió
 | 5 · Fotos en el PDF | En 1 | **Cambio comprometido** |
 | 6 · Tarjeta «Pendiente» | En 1 | **Cambio comprometido** |
 
+### Cambios aplicados (22-11-2026)
+
+Los 7 cambios comprometidos se aplicaron en la app (versión 3, PR #16) siguiendo los pantallazos de propuesta de las secciones 4 y 5, y están publicados en Vercel.
+
+| Hallazgo | Cómo quedó en la app |
+|---|---|
+| 1 · Iniciar el turno | Aviso «Paso 1 · Inicia tu turno» y calendario resaltado hasta que el inspector marca el inicio de su ciclo 7x7. El aviso lleva directo a elegir el día y vuelve al turno. Una vez marcado, queda la línea «✓ Turno iniciado el … · Cambiar». |
+| 4 · Cerrar sesión visible | Botón «Cerrar sesión» al final de la pantalla Turno y «Terminé: cerrar sesión» en la pantalla de parte firmada. |
+| 7 · Revisar el detalle antes de firmar | Aviso «Antes de firmar, abre cada sección», la primera sección abierta y «Ver detalle» en las demás. El aviso pasa a verde cuando se revisaron todas. No bloquea la firma. |
+| 2 · Clima y botones | Clima más pequeño y en gris. «Paso 2 · Agrega cada área donde trabajaste hoy», con «Agregar área» en turquesa y «Nueva alerta» en amarillo. |
+| 3 · «Declarar sin actividad» | La pregunta «¿Hoy NO hubo trabajos en esta área?», con borde ámbar y una explicación de cuándo usarla. Se apaga sola al escribir la descripción. Si ya hay texto escrito, pide confirmar. |
+| 5 · Fotos en el PDF | Cada foto va justo después de la descripción de su registro y la foto de una alerta, junto a la alerta. Las fotos se numeran en el orden en que aparecen. El formato del mandante no cambia. |
+| 6 · Tarjeta «Pendiente» | Botón «Registrar avance de esta área» dentro de la tarjeta. |
+
+**Validación técnica:** el set de pruebas automáticas recorrió el flujo completo (administrador, cuatro inspectores, jefe de turno, consolidación y PDF) con datos inventados. Una nueva ronda con inspectores reales podría confirmar si los cambios resuelven las dudas observadas.
+
 **Límites de esta prueba:** se planificaron 5 personas por perfil y participaron 3 personas en total. La satisfacción se recogió con las opiniones de los participantes, que fueron positivas, sin una encuesta con puntaje. Con más participantes se podría confirmar cuáles de los hallazgos vistos una sola vez se repiten.
 
 ---
