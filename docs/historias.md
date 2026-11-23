@@ -436,6 +436,46 @@ Las historias siguen la secuencia real de uso del turno, de la apertura del día
 
 ---
 
+## Versión 3 · Mejoras de la prueba de usuarios
+
+La [prueba de usuarios](prueba-usuarios.md#6-cierre-de-la-prueba) dejó 7 cambios comprometidos. No hay historias nuevas: se agregan escenarios a las existentes.
+
+**HU-01 · Abrir el turno · escenario «iniciar el turno» (hallazgo 1)**
+
+- **Dado** que empieza un nuevo ciclo de mi rol 7x7 y aún no marco su inicio,
+- **cuando** abro el turno,
+- **entonces** veo «Paso 1 · Inicia tu turno» y el calendario resaltado; al tocarlos elijo el día de inicio y vuelvo al turno, donde queda «✓ Turno iniciado el …».
+
+**HU-01 · Abrir el turno · escenario «qué hacer después» (hallazgos 2 y 6)**
+
+- **Dado** que agregué un área y todavía no la registro,
+- **cuando** miro el turno,
+- **entonces** la tarjeta «Pendiente» muestra el botón «Registrar avance de esta área», y «Paso 2» indica agregar cada área con «Agregar área» y «Nueva alerta» destacadas por sobre el clima.
+
+**HU-04 · Declarar un frente sin actividad · escenario «ya escribí el avance» (hallazgo 3)**
+
+- **Dado** que en el área escribí o dicté la descripción del avance,
+- **cuando** veo la pregunta «¿Hoy NO hubo trabajos en esta área?»,
+- **entonces** queda apagada; si la había activado, se apaga sola al escribir, y si la activo con texto escrito, la app me pide confirmar porque la descripción se borra.
+
+**HU-06 · Revisar el borrador · escenario «revisar antes de firmar» (hallazgo 7)**
+
+- **Dado** que voy a cerrar mi parte,
+- **cuando** abro el borrador,
+- **entonces** veo «Antes de firmar, abre cada sección», la primera sección abierta y «Ver detalle» en las demás; el aviso pasa a verde cuando las revisé todas.
+
+**HU-11 · Ingresar con mi usuario y clave · escenario «salir de la app» (hallazgo 4)**
+
+- **Dado** que terminé mi turno o firmé mi parte,
+- **cuando** busco cómo salir,
+- **entonces** tengo «Cerrar sesión» a la vista en el turno y «Terminé: cerrar sesión» en la pantalla de parte firmada, sin entrar a Ajustes.
+
+**HU-14 · Consolidar y enviar un solo reporte · escenario «fotos junto a su texto» (hallazgo 5)**
+
+- **Dado** que un área tiene varios registros con fotos y hay alertas con foto,
+- **cuando** el jefe de turno genera el PDF,
+- **entonces** cada foto aparece justo después de la descripción de su registro y la foto de cada alerta, junto a esa alerta.
+
 ## Semana 8 · Consolidación por el jefe de turno
 
 Pedido del profesor guía: un turno tiene varios inspectores y el mandante recibe **un solo reporte**, que envía el jefe de turno. Tras probar la primera versión, el equipo pidió además que el inspector **firme** su parte, que el jefe vea **solo lo firmado**, un **semáforo** de avance, ingreso con clave y solo turno de día. Las historias HU-07 y HU-09 pasan al jefe de turno.

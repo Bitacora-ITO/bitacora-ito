@@ -36,7 +36,17 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
-**Semana 8: consolidación por el jefe de turno (versión 2, aprobada y publicada en Vercel).** Pedido del profesor guía: varios inspectores por turno y un solo reporte al mandante, enviado por el jefe de turno.
+**Versión 3: mejoras de la prueba de usuarios (publicada en Vercel el 22-11-2026).** Los 7 cambios comprometidos al cerrar la [prueba de usuarios](docs/prueba-usuarios.md#6-cierre-de-la-prueba) ya están en la app:
+
+- **Turno:** aviso «Paso 1 · Inicia tu turno» con el calendario resaltado hasta marcar el inicio del ciclo 7x7; clima más discreto; «Paso 2» con «Agregar área» y «Nueva alerta» en color; botón «Registrar avance de esta área» en cada tarjeta pendiente; «Cerrar sesión» a la vista.
+- **Registrar avance:** la pregunta «¿Hoy NO hubo trabajos en esta área?», con explicación; se apaga sola al escribir el avance.
+- **Borrador:** aviso «Antes de firmar, abre cada sección» y botón «Ver detalle» en cada sección.
+- **Parte firmada:** «Terminé: cerrar sesión».
+- **Reporte PDF:** cada foto va justo después de la descripción de su registro, y la foto de una alerta, junto a la alerta.
+
+El detalle está en [prototipo.md](docs/prototipo.md#7-cambios-de-la-prueba-de-usuarios-versión-3) y los criterios de aceptación, en [historias.md](docs/historias.md#versión-3--mejoras-de-la-prueba-de-usuarios).
+
+**Semana 8: consolidación por el jefe de turno (versión 2).** Pedido del profesor guía: varios inspectores por turno y un solo reporte al mandante, enviado por el jefe de turno.
 
 - Cada persona entra con su nombre y clave, y solo ve lo de su rol: inspector, jefe de turno o administrador.
 - El inspector registra en terreno, **cierra su parte y la firma**. No genera PDF.
@@ -58,6 +68,7 @@ La aplicación está publicada en Vercel y se genera también como APK para Andr
 | Consolidación por el jefe de turno, firma del inspector y semáforo (PoC del flujo principal) | 8 | Entregado |
 | Diseño de la prueba de usuarios y sesión piloto | 9 | Entregado |
 | Prueba de usuarios: sesión 2 y cierre con resultados | 10 | Entregado |
+| Mejoras de la prueba de usuarios aplicadas en la app (versión 3) | 11 | Entregado |
 | MVP validado con inspectores | 12 | Pendiente |
 
 ## Stack tecnológico
