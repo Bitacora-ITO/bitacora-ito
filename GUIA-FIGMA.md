@@ -1,5 +1,7 @@
 # Guía para armar el prototipo en Figma
 
+> **Versión 3 (prueba de usuarios):** siete marcos nuevos con las mejoras de la prueba de usuarios, ya aplicados en Figma. Ver la sección [Versión 3](#versión-3--mejoras-de-la-prueba-de-usuarios-ya-aplicada-en-figma) al final.
+>
 > **Semana 8:** los marcos nuevos (ingreso, firma del inspector, jefe de turno, Ajustes y catálogo) también están aplicados en Figma. Ver la sección [Semana 8](#semana-8--versión-2-ya-aplicada-en-figma) al final.
 >
 > **Versión 2 (semana 6): ya está aplicada en el archivo de Figma.**
@@ -174,3 +176,27 @@ Diez marcos nuevos y tres modificados (04b, 07a y 07b). No se borró ningún mar
 **Flujos de inicio nuevos:** «Ingreso» (09a), «Jefe de turno» (10a) y «Administrador» (11a). Se mantienen los cinco anteriores.
 
 En 07a y 07b el PDF dibujado dice «Elaborado por: J. Orellana / A. Castillo / C. Fuentes / A. Díaz». 01a y 10a tienen el engranaje de Ajustes.
+
+## Versión 3 · mejoras de la prueba de usuarios (ya aplicada en Figma)
+
+Siete marcos nuevos en una fila propia, debajo de los del jefe de turno. No se borró ningún marco: los de la versión 2 quedan como referencia. Las notas amarillas «v3 · …» indican qué hallazgo de la [prueba de usuarios](docs/prueba-usuarios.md#6-cierre-de-la-prueba) resuelve cada uno.
+
+| Marco | Qué muestra | Lleva a |
+|---|---|---|
+| **01d Turno · Paso 1 y Paso 2** | «Paso 1 · Inicia tu turno» y calendario resaltado; clima discreto; tarjeta «Pendiente» con «Registrar avance de esta área»; «Paso 2» con «Agregar área» y «Nueva alerta» en color; «Cerrar sesión» a la vista | Paso 1 o calendario → 08e · tarjeta pendiente → 02e · Agregar área → 06a · Nueva alerta → 03a · Revisar reporte → 04d · Cerrar sesión → 09a · engranaje → 09c |
+| **01e Turno · turno iniciado** | Igual que 01d, con «✓ Turno iniciado el … · Cambiar» en vez del Paso 1 | Cambiar → 08e · calendario → 08a · el resto como 01d |
+| **02e Registrar avance · ¿Hoy NO hubo trabajos?** | La pregunta con borde ámbar y la explicación de cuándo usarla | ← Turno o Guardar registro → 01e |
+| **04d Borrador · revisar antes de firmar** | Aviso «Antes de firmar, abre cada sección», la primera abierta («Ocultar») y «Ver detalle» en las demás | Cerrar y enviar al jefe de turno → 05e · Editar registros o ← Turno → 01e |
+| **08e Inicio de turno · desde el Paso 1** | El calendario de 08d con «‹ Turno» y el botón «Iniciar mi turno» | Iniciar mi turno → 01e · ← Turno → 01d |
+| **05g Parte firmada · cerrar sesión** | La confirmación de 05f con «Terminé: cerrar sesión» | Terminé: cerrar sesión → 09a · Volver al turno → 01e |
+| **07c Vista previa PDF · fotos junto a su texto** | El PDF del jefe (formato bitácora) con cada foto después de su descripción y la foto de la alerta junto a la alerta | Aprobar y enviar al mandante → 10d · ← Revisión → 10c |
+
+**Cambio en un marco existente:** «Firmar y enviar» de **05e** ahora lleva a **05g**.
+
+**Componentes nuevos** (a la izquierda de la fila): «v3/Área · con registro», «v3/Área · pendiente con botón», «v3/Área · sin actividad» y «v3/Sección del borrador · cerrada». Las tarjetas de 01d, 01e y 04d son instancias de esos componentes, así que un cambio en el componente se refleja en todas.
+
+**Flujo de inicio nuevo:** «Versión 3 · Inspector (prueba de usuarios)», que parte en 01d. Se mantienen los anteriores.
+
+**Pantallas largas:** 01d, 01e y 04d miden más que el teléfono y se desplazan en vertical en el modo presentación, igual que en la app.
+
+![Vista general de la versión 3](docs/pantallas-v3.png)

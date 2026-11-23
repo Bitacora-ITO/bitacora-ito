@@ -252,18 +252,20 @@ Resultado: 30 de 30 comprobaciones bien. Las pruebas encontraron 4 errores que s
 
 ## 7. Cambios de la prueba de usuarios (versión 3)
 
-La [prueba de usuarios](prueba-usuarios.md#6-cierre-de-la-prueba) (11 y 18 de noviembre) dejó 7 cambios comprometidos. Se aplicaron en la app siguiendo los pantallazos de propuesta y quedaron también en Figma (ver [GUIA-FIGMA](../GUIA-FIGMA.md)).
+La [prueba de usuarios](prueba-usuarios.md#6-cierre-de-la-prueba) (11 y 18 de noviembre) dejó 7 cambios comprometidos. Se aplicaron en la app siguiendo los pantallazos de propuesta y quedaron también en Figma: siete marcos nuevos (01d, 01e, 02e, 04d, 05g, 07c y 08e) y el flujo de inicio «Versión 3 · Inspector». El detalle de cada marco y sus conexiones está en [GUIA-FIGMA](../GUIA-FIGMA.md#versión-3--mejoras-de-la-prueba-de-usuarios-ya-aplicada-en-figma).
 
-| Pantalla | Cambio | Hallazgo | Historia |
-|---|---|---|---|
-| P1 Turno | «Paso 1 · Inicia tu turno» y calendario resaltado hasta marcar el inicio del ciclo 7x7 | 1 | HU-01 |
-| P1 Turno | Clima discreto; «Paso 2» con «Agregar área» (turquesa) y «Nueva alerta» (amarillo) | 2 | HU-01 |
-| P1 Turno | Botón «Registrar avance de esta área» en la tarjeta «Pendiente» | 6 | HU-01 |
-| P1 Turno y parte firmada | «Cerrar sesión» a la vista y «Terminé: cerrar sesión» al firmar | 4 | HU-11 |
-| P2 Registrar avance | «¿Hoy NO hubo trabajos en esta área?», con explicación; se apaga al escribir | 3 | HU-04 |
-| P4 Borrador | «Antes de firmar, abre cada sección», «Ver detalle» y aviso verde al revisar todas | 7 | HU-06 |
-| Reporte PDF (jefe) | Cada foto después de su descripción; la de una alerta, junto a la alerta | 5 | HU-14 |
-| Inicio de turno | Desde el «Paso 1» se vuelve al turno con «Iniciar mi turno» | 1 | HU-10 |
+| Pantalla | Cambio | Hallazgo | Historia | Marco en Figma |
+|---|---|---|---|---|
+| P1 Turno | «Paso 1 · Inicia tu turno» y calendario resaltado hasta marcar el inicio del ciclo 7x7 | 1 | HU-01 | 01d (y 01e, ya iniciado) |
+| P1 Turno | Clima discreto; «Paso 2» con «Agregar área» (turquesa) y «Nueva alerta» (amarillo) | 2 | HU-01 | 01d, 01e |
+| P1 Turno | Botón «Registrar avance de esta área» en la tarjeta «Pendiente» | 6 | HU-01 | 01d, 01e |
+| P1 Turno y parte firmada | «Cerrar sesión» a la vista y «Terminé: cerrar sesión» al firmar | 4 | HU-11 | 01d, 05g |
+| P2 Registrar avance | «¿Hoy NO hubo trabajos en esta área?», con explicación; se apaga al escribir | 3 | HU-04 | 02e |
+| P4 Borrador | «Antes de firmar, abre cada sección», «Ver detalle» y aviso verde al revisar todas | 7 | HU-06 | 04d |
+| Reporte PDF (jefe) | Cada foto después de su descripción; la de una alerta, junto a la alerta | 5 | HU-14 | 07c |
+| Inicio de turno | Desde el «Paso 1» se vuelve al turno con «Iniciar mi turno» | 1 | HU-10 | 08e |
+
+![Pantallas de la versión 3 en Figma](pantallas-v3.png)
 
 **Decisiones de la versión 3**
 
