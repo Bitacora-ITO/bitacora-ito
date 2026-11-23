@@ -77,6 +77,8 @@ export interface LineaConsolidada {
   sinActividad: boolean;
   inspector: string;
   registradoEn: string;
+  /** Ids de las fotos del registro que termina en esta línea (para imprimirlas junto a su descripción). */
+  fotos?: string[];
 }
 
 export interface EmpresaConsolidada {
@@ -115,6 +117,7 @@ export interface AlertaConsolidada {
   inspector: string;
   registradoEn: string;
   fotos: string[]; // archivos dentro del paquete
+  idsFotos: string[]; // ids de esas fotos (para imprimirlas junto a la alerta)
 }
 
 export interface ParteResumida {
@@ -261,9 +264,14 @@ export function estructurar(entrada: EntradaConsolidacion, opciones: OpcionesCon
       const regs = [...e.regs].sort((x, y) => x.r.registradoEn.localeCompare(y.r.registradoEn));
       const activos = regs.filter((x) => !x.r.sinActividad);
       const lineas: LineaConsolidada[] = activos.length
-        ? activos.flatMap((x) => lineasDe(x.r.descripcion).map((texto) => ({
-            texto, sinActividad: false, inspector: x.inspector, registradoEn: x.r.registradoEn,
-          })))
+        ? activos.flatMap((x) => {
+            const propias: LineaConsolidada[] = lineasDe(x.r.descripcion).map((texto) => ({
+              texto, sinActividad: false, inspector: x.inspector, registradoEn: x.r.registradoEn,
+            }));
+            const ids = x.fotos.filter((f) => f.registroId === x.r.id).sort(ordenFoto).map((f) => f.id);
+            if (ids.length && propias.length) propias[propias.length - 1].fotos = ids;
+            return propias;
+          })
         : regs.length
           ? [{ texto: "Sin actividad.", sinActividad: true, inspector: regs.map((x) => x.inspector).join(" / "), registradoEn: regs[0].r.registradoEn }]
           : [];
@@ -297,7 +305,9 @@ export function estructurar(entrada: EntradaConsolidacion, opciones: OpcionesCon
     const nombreDestino = kArea && area ? area : areasOut[0]?.nombre ?? "";
     const pie = `Alerta · ${NOMBRE_COLUMNA[al.columna]} (${NOMBRE_CRITICIDAD[al.criticidad]})`;
     const archivos: string[] = [];
+    const idsFotos: string[] = [];
     for (const f of p.fotografias.filter((x) => x.alertaId === al.id).sort(ordenFoto)) {
+      idsFotos.push(f.id);
       const foto: FotoConsolidada = {
         id: f.id, url: f.url, src: srcFoto(f), pie, inspector: p.inspector.nombre, capturadaEn: f.capturadaEn,
         area: nombreDestino, origen: "alerta", archivo: nombrarFoto(nombreDestino, p.inspector.nombre, f.capturadaEn, true),
@@ -309,7 +319,7 @@ export function estructurar(entrada: EntradaConsolidacion, opciones: OpcionesCon
     alertas.push({
       columna: al.columna, empresa: al.empresaId ? nombreEmpresa.get(al.empresaId) : undefined, area,
       texto: al.descripcion.trim(), criticidad: al.criticidad, inspector: p.inspector.nombre,
-      registradoEn: al.registradoEn, fotos: archivos,
+      registradoEn: al.registradoEn, fotos: archivos, idsFotos,
     });
   }
   alertas.sort((a, b) => ORDEN_COLUMNAS.indexOf(a.columna) - ORDEN_COLUMNAS.indexOf(b.columna) || a.registradoEn.localeCompare(b.registradoEn));
@@ -354,13 +364,15 @@ export function aDatosInforme(c: Consolidacion): DatosInforme {
     subsecciones: a.empresas.map((e) => ({
       numero: e.numero,
       titulo: e.nombre,
-      lineas: e.lineas.map((l): LineaInforme => ({ texto: l.texto, tipo: l.sinActividad ? "sin_actividad" : "normal" })),
+      lineas: e.lineas.map((l): LineaInforme => ({ texto: l.texto, tipo: l.sinActividad ? "sin_actividad" : "normal", fotos: l.fotos })),
     })),
     tituloFotos: a.fotos.length ? a.nombre : undefined,
-    fotos: a.fotos.map((f): FotoInforme => ({ src: f.src, pie: f.pie })),
+    fotos: a.fotos.map((f): FotoInforme => ({ src: f.src, pie: f.pie, ref: f.id })),
   }));
   const alertas: Record<ColumnaAlerta, AlertaInforme[]> = { construccion: [], laboratorio: [], topografia: [], interferencia: [] };
-  for (const al of c.alertas) alertas[al.columna].push({ empresa: al.empresa, texto: al.texto, criticidad: al.criticidad });
+  for (const al of c.alertas) {
+    alertas[al.columna].push({ empresa: al.empresa, texto: al.texto, criticidad: al.criticidad, fotos: al.idsFotos.length ? al.idsFotos : undefined });
+  }
   return {
     contrato: {
       nombreServicio: c.contrato.nombre,

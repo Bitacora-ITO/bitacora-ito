@@ -5,6 +5,7 @@ import type {
   Fotografia, Registro, Reporte, RolTurno, Turno, Usuario,
 } from "./types";
 import type { FotoCapturada } from "./nativo";
+import { inicioTurnoVigente } from "./rol";
 
 // ───────────────────────── Contexto de la sesión ─────────────────────────
 
@@ -459,10 +460,32 @@ export async function rolDelUsuario(): Promise<RolTurno | undefined> {
   return db.rolesTurno.where("usuarioId").equals(usuario.id).first();
 }
 
+/** Ajuste por inspector con el inicio del ciclo 7x7 que confirmó (prueba de usuarios, hallazgo 1). */
+const claveInicioConfirmado = (usuarioId: string) => `inicioTurnoConfirmado.${usuarioId}`;
+
 export async function fijarInicioTurno(fecha: string): Promise<void> {
   const rol = await rolDelUsuario();
   if (!rol) throw new Error("No hay rol de turnos cargado.");
   await db.rolesTurno.update(rol.id, { fechaInicio: fecha });
+  // Marcar el día de inicio confirma el turno vigente: el «Paso 1» de la pantalla Turno se oculta
+  // hasta que empiece el próximo ciclo.
+  await escribirAjuste(claveInicioConfirmado(rol.usuarioId), inicioTurnoVigente(hoyLocal(), { ...rol, fechaInicio: fecha }));
+}
+
+export interface EstadoInicioTurno {
+  /** Inicio del turno vigente según el rol (puede venir precargado por la demostración). */
+  inicio: string;
+  /** El inspector ya marcó el día de inicio de este ciclo. */
+  confirmado: boolean;
+}
+
+/** ¿El inspector ya marcó el inicio de su turno vigente? Sin rol cargado no hay nada que pedir. */
+export async function estadoInicioTurno(): Promise<EstadoInicioTurno | undefined> {
+  const rol = await rolDelUsuario();
+  if (!rol) return undefined;
+  const inicio = inicioTurnoVigente(hoyLocal(), rol);
+  const confirmado = (await leerAjuste(claveInicioConfirmado(rol.usuarioId))) === inicio;
+  return { inicio, confirmado };
 }
 
 /** Fechas con al menos un envío en estado enviado. */

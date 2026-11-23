@@ -10,6 +10,7 @@ export interface FotoPreparada {
   ancho: number;
   alto: number;
   pie?: string;
+  ref?: string;
 }
 
 export interface SeccionPreparada extends Omit<SeccionInforme, "fotos"> {

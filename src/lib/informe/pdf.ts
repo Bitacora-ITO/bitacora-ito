@@ -75,7 +75,7 @@ async function leerBytes(src: string): Promise<Uint8Array> {
 async function prepararFoto(f: FotoInforme): Promise<FotoPreparada | null> {
   try {
     const img = await prepararImagen(await leerBytes(f.src));
-    return { src: img.dataUrl, ancho: img.ancho, alto: img.alto, pie: f.pie };
+    return { src: img.dataUrl, ancho: img.ancho, alto: img.alto, pie: f.pie, ref: f.ref };
   } catch (e) {
     // Una foto ilegible no debe impedir el informe: se omite y se avisa en consola.
     console.warn("generarPdfInforme: foto omitida", f.src.slice(0, 80), e);

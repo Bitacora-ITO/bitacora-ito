@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import s from "./ui.module.css";
-import { IcoAlerta, IcoAtras, IcoCerrar } from "./iconos";
+import { IcoAlerta, IcoAtras, IcoCerrar, IcoCheck } from "./iconos";
 import { useUrlObjeto } from "@/hooks/useUrlObjeto";
 
 export { s as estilos };
@@ -62,15 +62,17 @@ export function MensajeError({ children }: { children: ReactNode }) {
   return <p className={s.textoError} role="alert"><IcoAlerta size={16} /> {children}</p>;
 }
 
-export function Segmentado<T extends string>({ opciones, valor, onChange, deshabilitado, etiqueta }: {
+export function Segmentado<T extends string>({ opciones, valor, onChange, deshabilitado, etiqueta, discreto }: {
   opciones: { valor: T; etiqueta: string }[];
   valor: T | undefined;
   onChange: (v: T) => void;
   deshabilitado?: boolean;
   etiqueta: string;
+  /** Versión liviana (prueba de usuarios, hallazgo 2): no compite con las acciones principales. */
+  discreto?: boolean;
 }) {
   return (
-    <div className={s.segmentado} role="radiogroup" aria-label={etiqueta} aria-disabled={deshabilitado || undefined}>
+    <div className={cx(s.segmentado, discreto && s.segmentadoDiscreto)} role="radiogroup" aria-label={etiqueta} aria-disabled={deshabilitado || undefined}>
       {opciones.map((o) => (
         <button
           key={o.valor}
@@ -81,7 +83,7 @@ export function Segmentado<T extends string>({ opciones, valor, onChange, deshab
           onClick={() => onChange(o.valor)}
           disabled={deshabilitado}
         >
-          {o.etiqueta}
+          {discreto && valor === o.valor && <IcoCheck size={14} />}{o.etiqueta}
         </button>
       ))}
     </div>
@@ -118,11 +120,13 @@ export function Cargando({ texto = "Cargando…" }: { texto?: string }) {
   );
 }
 
-export function Interruptor({ titulo, detalle, activo, onChange, deshabilitado }: {
-  titulo: string; detalle?: string; activo: boolean; onChange: (v: boolean) => void; deshabilitado?: boolean;
+export function Interruptor({ titulo, detalle, activo, onChange, deshabilitado, destacado }: {
+  titulo: string; detalle?: ReactNode; activo: boolean; onChange: (v: boolean) => void; deshabilitado?: boolean;
+  /** Borde ámbar para una decisión que se confunde fácil (prueba de usuarios, hallazgo 3). */
+  destacado?: boolean;
 }) {
   return (
-    <label className={cx(s.interruptor, deshabilitado && s.atenuado)}>
+    <label className={cx(s.interruptor, destacado && s.interruptorDestacado, deshabilitado && s.atenuado)}>
       <span style={{ flex: 1 }}>
         <b style={{ display: "block", fontSize: 15 }}>{titulo}</b>
         {detalle && <span className={s.textoSuave}>{detalle}</span>}

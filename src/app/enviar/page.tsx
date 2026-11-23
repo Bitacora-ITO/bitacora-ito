@@ -26,7 +26,8 @@ import e from "./enviar.module.css";
 
 export default function Enviar() {
   const router = useRouter();
-  const { contexto, reporteHoyId, conectado, errorSync, sincronizando, refrescar } = useApp();
+  const { contexto, reporteHoyId, conectado, errorSync, sincronizando, refrescar, salir } = useApp();
+  const [saliendo, setSaliendo] = useState(false);
   const sesion = useSesion();
   const [entregando, setEntregando] = useState(false);
   const [errorLocal, setErrorLocal] = useState<string>();
@@ -137,8 +138,21 @@ export default function Enviar() {
     const subido = supabaseConfigurado && porSubir === 0;
     const ocupado = entregando || sincronizando;
     if (subido) {
+      // Prueba de usuarios (hallazgo 4): al terminar, el inspector sale de la app desde aquí mismo.
+      const cerrarSesion = async () => {
+        setSaliendo(true);
+        try { await salir(); } catch (er) { setErrorLocal(mensaje(er)); setSaliendo(false); }
+      };
       return (
-        <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>}>
+        <Pantalla pie={
+          <>
+            {errorLocal && <MensajeError>{errorLocal}</MensajeError>}
+            <button className={s.botonSecundario} onClick={cerrarSesion} disabled={saliendo}>
+              {saliendo ? <><Giro chico /> Cerrando sesión…</> : "Terminé: cerrar sesión"}
+            </button>
+            <button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>
+          </>
+        }>
           <Encabezado volver={{ texto: "Turno", href: "/" }} titulo={titulo} />
           <div className={e.exito}>
             <span className={e.check}><IcoCheck size={52} /></span>

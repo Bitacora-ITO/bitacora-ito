@@ -25,13 +25,14 @@ function lineasDe(descripcion: string): LineaInforme[] {
 
 async function fotosInforme(fotos: Fotografia[], pie?: string): Promise<FotoInforme[]> {
   const ordenadas = [...fotos].sort((a, b) => a.orden - b.orden || a.capturadaEn.localeCompare(b.capturadaEn));
-  return Promise.all(ordenadas.map(async (f) => ({ src: await blobADataUrl(f.imagen), pie: f.pieFoto ?? pie })));
+  return Promise.all(ordenadas.map(async (f) => ({ src: await blobADataUrl(f.imagen), pie: f.pieFoto ?? pie, ref: f.id })));
 }
 
 /**
  * - Cada área del turno es la sección n.0 (nombre en mayúsculas) y su empresa la subsección n.1.
  * - Un registro por viñeta; los saltos de línea separan viñetas; «Sin actividad.» en rojo.
  * - Fotos de los registros del área como data URL, con el nombre del área como título de la columna.
+ *   Cada foto queda ligada (ref) a la última línea de su registro, y la de una alerta a su alerta.
  *   Las fotos de una alerta con área van al final de esa sección, con pie «Alerta · Columna (criticidad)».
  * - Alertas agrupadas por columna, con empresa, texto y criticidad.
  */
@@ -61,9 +62,14 @@ export async function armarDatosInforme(reporteId: string): Promise<DatosInforme
     const n = i + 1;
     const nombreArea = areas.find((a) => a.id === at.areaId)?.nombre ?? "Área";
     const regs = registros.filter((r) => r.areaTurnoId === at.id).sort((a, b) => a.registradoEn.localeCompare(b.registradoEn));
-    const lineas: LineaInforme[] = regs.flatMap((r) =>
-      r.sinActividad ? [{ texto: "Sin actividad.", tipo: "sin_actividad" as const }] : lineasDe(r.descripcion),
-    );
+    const lineas: LineaInforme[] = regs.flatMap((r) => {
+      if (r.sinActividad) return [{ texto: "Sin actividad.", tipo: "sin_actividad" as const }];
+      const propias = lineasDe(r.descripcion);
+      const refs = fotosReg.filter((f) => f.registroId === r.id).map((f) => f.id);
+      // Sin texto no hay dónde ligarlas: quedan al final de la sección, como antes.
+      if (refs.length && propias.length) propias[propias.length - 1].fotos = refs;
+      return propias;
+    });
     const ids = new Set(regs.map((r) => r.id));
     const fotos = await fotosInforme(fotosReg.filter((f) => f.registroId && ids.has(f.registroId)));
     for (const al of alertas.filter((a) => a.areaTurnoId === at.id)) {
@@ -91,7 +97,8 @@ export async function armarDatosInforme(reporteId: string): Promise<DatosInforme
 
   const grupos: Record<ColumnaAlerta, AlertaInforme[]> = { construccion: [], laboratorio: [], topografia: [], interferencia: [] };
   for (const al of [...alertas].sort((a, b) => a.registradoEn.localeCompare(b.registradoEn))) {
-    grupos[al.columna].push({ empresa: empresa(al.empresaId), texto: al.descripcion, criticidad: al.criticidad });
+    const refs = fotosAl.filter((f) => f.alertaId === al.id).map((f) => f.id);
+    grupos[al.columna].push({ empresa: empresa(al.empresaId), texto: al.descripcion, criticidad: al.criticidad, fotos: refs.length ? refs : undefined });
   }
 
   return {
