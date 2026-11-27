@@ -40,7 +40,7 @@ La corrección más importante no fue de detalle sino de concepto. La propuesta 
 | `hallazgo` se dividió en `registro` y `alerta` | En el reporte real son dos bloques distintos: el cuerpo de actividades por frente y la tabla de alertas del encabezado |
 | `area` pasó a ser `frente` con jerarquía de frente y subfrente | El reporte se estructura en frentes y subfrentes numerados, por ejemplo 1.0 Muro Sotelo y dentro de él 1.2 Excavación y rellenos de zanja cortafuga, y no en áreas planas |
 | El reporte pasó a ser del **turno** y no de un inspector | El reporte corresponde al turno y lleva el nombre de quien lo elabora en el campo «Elaborado por» |
-| El catálogo de frentes dejó de configurarse por contrato | Los frentes cambian con el avance de la obra y los escribe el propio inspector |
+| El catálogo de frentes dejó de configurarse por contrato *(revertido en la versión 2: el catálogo vuelve a venir con el contrato y el inspector lo elige de una lista)* | Los frentes cambian con el avance de la obra y los escribe el propio inspector |
 | Se separaron `registrado_en` y `sincronizado_en` | Con una sola hora no se distingue un registro levantado en terreno de uno reconstruido en gabinete, que es uno de los indicadores comprometidos |
 | Se agregó el campo `sin_actividad` | El reporte declara explícitamente los frentes detenidos, y eso también es información que el mandante espera |
 | Se agregaron clima del turno y proyección del día siguiente | Están en el encabezado del formato real y la primera versión los había omitido |
