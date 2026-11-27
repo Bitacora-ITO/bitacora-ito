@@ -190,7 +190,7 @@ export default function Enviar() {
         )}
         {cifras}
         {errorLocal && <MensajeError>{errorLocal}</MensajeError>}
-        <p className={s.textoSuave}>Puedes cerrar la app: la entrega queda en cola.</p>
+        <p className={s.textoSuave}>Tu parte queda guardada en el teléfono y se sube sola cuando la app esté abierta y haya señal.</p>
         {supabaseConfigurado && (
           <button className={`${s.botonSecundario} ${s.botonChico}`} onClick={entregar} disabled={ocupado}>
             {ocupado ? <><Giro chico /> Subiendo…</> : "Reintentar ahora"}

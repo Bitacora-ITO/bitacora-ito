@@ -39,7 +39,9 @@ Según la Ley 21.719, que rige desde el 1 de diciembre de 2026. Complementa la [
 | Fotografías | Evidencia del avance o de la alerta | Inspector, jefe de turno y mandante | Igual que el reporte |
 | Rol de turnos (7x7) | Distinguir un día de descanso de un informe no entregado, y no contar en el semáforo a quien descansa | Inspector y jefe de turno | Mientras dure el contrato |
 
-**Datos que no se recogen:** ubicación continua (el GPS se toma solo al guardar), audio del dictado (solo se guarda el texto), RUT ni teléfono.
+**Datos que no se recogen:** ubicación continua (el GPS se toma solo al guardar), audio del dictado (la app guarda solo el texto), RUT ni teléfono.
+
+**Un tercero que procesa datos: el dictado.** La app no graba ni guarda el audio, pero el dictado usa el reconocimiento de voz del teléfono. En Android ese servicio es de Google y puede enviar el audio a sus servidores para transcribirlo (por eso a veces no funciona sin señal). Se informa al inspector y siempre puede escribir en vez de dictar.
 
 **Lo que el inspector no ha firmado no lo ve el jefe de turno.** Se respalda en la nube para no perderlo, pero el jefe solo ve «Aún no envía». El inspector decide cuándo su información está lista.
 
@@ -60,7 +62,7 @@ Según la Ley 21.719, que rige desde el 1 de diciembre de 2026. Complementa la [
 | Semáforo del jefe de turno | ✅ Cumple | Además del color, dice el texto «3 de 4 ITO enviaron · 75 %» y el teléfono vibra al llegar al 100 % |
 | Alternativa al dictado por voz | ✅ Opción «Escribir» | — |
 
-**Aviso de automatización.** La app no usa IA generativa: el dictado lo transcribe el teléfono y el PDF se arma con una plantilla. Igual se avisa al usuario:
+**Aviso de automatización.** La app no usa IA generativa: el dictado lo transcribe el reconocimiento de voz del teléfono (de Google, en Android) y el PDF se arma con una plantilla. Igual se avisa al usuario:
 
 - **Al dictar:** «Texto transcrito automáticamente. Revísalo antes de guardar.»
 - **Al firmar su parte (inspector):** «Yo, [nombre], declaro que revisé mi parte del turno y que la información registrada es correcta.» Sin marcar la declaración y escribir la clave, la parte no se envía.
