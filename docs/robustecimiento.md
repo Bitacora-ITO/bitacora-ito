@@ -22,7 +22,7 @@ Lo quitado no aparece en el turno, en el conteo «N de M resueltos», en el PDF 
 
 ## 2. Reglas del registro de avance y las tres capas
 
-Las reglas viven en un solo archivo, `src/lib/reglas.ts`, que usan el formulario y el guardado. La base de datos las repite en `supabase/migrations/0003_reglas_registro.sql`.
+Las reglas viven en un solo archivo, `src/lib/reglas.ts`, que usan el formulario y el guardado. La base de datos las repite en `supabase/migrations/0003_reglas_registro.sql`, aplicada en Supabase el 27-11-2026 (comprobado: las 4 reglas aparecen en la base).
 
 | Campo | Regla | Mensaje exacto | Navegador | Al guardar (app) | Base de datos |
 |---|---|---|---|---|---|
@@ -95,7 +95,6 @@ Se ejecutaron en la app con un navegador automático, en tamaño de teléfono (3
 | Capa servidor para los registros | Exige crear la ruta en Vercel, cambiar la sincronización y cerrar las escrituras directas a Supabase | Semana 10 (permisos) |
 | Conservar lo quitado también en la nube | Exige una columna nueva y cambiar la sincronización y la consolidación del jefe de turno | Semana 10 |
 | Clave de ingreso única (`1234`) y permisos abiertos de la maqueta | Cualquiera con la clave pública de la app puede leer y escribir la base | Semana 10, con Supabase Auth |
-| Aplicar la migración 0003 en Supabase | Subirla a GitHub no la aplica: se ejecuta en el SQL Editor del proyecto | Al publicar esta versión |
 
 ## 6. Archivos modificados
 
