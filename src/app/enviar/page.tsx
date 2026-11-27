@@ -185,7 +185,7 @@ export default function Enviar() {
         ) : (
           <Aviso tono="ambar" icono={<IcoAlerta />} titulo={ocupado ? "Subiendo tu parte…" : "Entregada · aún no se termina de subir"}>
             {porSubir} {porSubir === 1 ? "elemento pendiente" : "elementos pendientes"}. Se reintentará solo.
-            {!ocupado && errorSync && <><br /><small>{errorSync}</small></>}
+            {!ocupado && errorSync && <><br /><small>No se pudo subir a la nube. Tu parte quedó guardada en el teléfono.</small></>}
           </Aviso>
         )}
         {cifras}
