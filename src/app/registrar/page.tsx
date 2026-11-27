@@ -11,6 +11,7 @@ import {
 import { obtenerUbicacion, type FotoCapturada, type Ubicacion } from "@/lib/nativo";
 import type { Area, AreaTurno, Empresa, Registro } from "@/lib/types";
 import { hora } from "@/lib/fechas";
+import { DESCRIPCION_MAX, MENSAJES, errorDescripcion } from "@/lib/reglas";
 import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import CampoDescripcion, { type Origen } from "@/components/CampoDescripcion";
@@ -104,9 +105,9 @@ function Registrar() {
   }
 
   const otrosAvances = registros.filter((r) => !r.sinActividad && r.id !== base.editando?.id);
-  const errFoto = !sinActividad && fotos.length === 0 ? "Toma al menos 1 fotografía del avance." : undefined;
-  const errDesc = !sinActividad && !descripcion.trim() ? "Dicta o escribe qué se avanzó." : undefined;
-  const errEmp = !empresaId ? "Elige la empresa." : undefined;
+  const errFoto = !sinActividad && fotos.length === 0 ? MENSAJES.fotoFalta : undefined;
+  const errDesc = errorDescripcion(descripcion, sinActividad);
+  const errEmp = !empresaId ? MENSAJES.empresaFalta : undefined;
   const faltan = [errFoto, errDesc, errEmp].filter(Boolean).length;
   const bloqueado = !base.editable || guardando;
   const lat = ubic && ubic !== "buscando" ? ubic.latitud : undefined;
@@ -181,7 +182,7 @@ function Registrar() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8, opacity: sinActividad ? 0.55 : 1 }}>
           <Etiqueta obligatorio htmlFor="descripcion">Descripción del avance</Etiqueta>
           <CampoDescripcion id="descripcion" valor={descripcion} onChange={cambiarDescripcion} origen={origen} onOrigen={setOrigen}
-            error={intento ? errDesc : undefined} deshabilitado={bloqueado} />
+            error={intento ? errDesc : undefined} deshabilitado={bloqueado} maximo={DESCRIPCION_MAX} />
         </div>
 
         <Interruptor destacado titulo="¿Hoy NO hubo trabajos en esta área?" activo={sinActividad}
