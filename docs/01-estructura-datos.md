@@ -41,6 +41,7 @@ erDiagram
     CONTRATO ||--o{ FRENTE : "se divide en"
     CONTRATO ||--o{ REPORTE : "agrupa"
     CONTRATO ||--o{ USUARIO : "asigna"
+    CONTRATO ||--o{ EMPRESA : "trabaja con"
     FRENTE ||--o{ FRENTE : "subfrente de"
     AREA_TURNO ||--o{ REGISTRO : "contiene"
     AREA_TURNO ||--o{ ALERTA : "ubica (opcional)"
@@ -323,7 +324,7 @@ Los cambios que introdujo esa segunda etapa:
 | `area` pasó a ser `frente`, con jerarquía de frente y subfrente | El reporte se estructura en frentes numerados y sus subfrentes, no en áreas planas |
 | `proyecto` pasó a `contrato`, con códigos, revisión y serie de correlativos | El formato real los exige en el encabezado, y el correlativo se automatiza |
 | `informe` pasó a `reporte`, asociado al contrato, la fecha y el turno | Así se identifica en el formato real, y lleva el nombre de quien lo elabora |
-| El catálogo de frentes lo construye el inspector y no la jefatura | Los frentes cambian con el avance de la obra y es el inspector quien los escribe |
+| El catálogo de frentes lo construye el inspector y no la jefatura *(revertido en la versión 2, ver §9)* | Los frentes cambian con el avance de la obra y es el inspector quien los escribe |
 | Se agregó la entidad `empresa` | Las actividades y las alertas se atribuyen a la empresa que ejecuta |
 | Se agregó `sin_actividad` | El reporte declara de forma explícita los frentes detenidos |
 | Se agregaron el clima del turno y la proyección del día siguiente | Están en el encabezado del formato real y la primera versión los había omitido |
