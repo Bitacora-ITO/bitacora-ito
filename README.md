@@ -36,6 +36,15 @@ El tipo de solución dominante es la **automatización**, sostenida por una capa
 
 ## Estado actual
 
+**Versión 4: avance funcional robustecido (publicada en Vercel el 27-11-2026).** El registro de avance, lo que más usa el inspector, ahora valida lo que entra, avisa con mensajes propios cuando algo falla y resistió los intentos de rotura:
+
+- **Operación principal:** crear, leer y editar registros, y **quitar con borrado lógico**: lo quitado pasa a «Quitados de esta área» y se puede restaurar mientras el reporte siga editable.
+- **Validaciones:** descripción de 5 a 500 caracteres con contador, máximo 10 fotos por registro y aviso si el registro no existe. Las reglas viven en un solo archivo (`src/lib/reglas.ts`) y la base de datos las repite (migración `0003`, aplicada en Supabase).
+- **Mensajes y estados:** la pantalla Turno resuelve sus cuatro estados (cargando, vacío, con datos y error con «Reintentar») y los errores de cámara, dictado y envío muestran mensajes escritos por el equipo.
+- **Pruebas de rotura:** los 5 intentos de la pauta y 3 propios. El de «enviar dos veces» encontró que se guardaba doble; quedó corregido.
+
+El detalle, la tabla de reglas y las capturas están en [robustecimiento.md](docs/robustecimiento.md).
+
 **Versión 3: mejoras de la prueba de usuarios (publicada en Vercel el 22-11-2026).** Los 7 cambios comprometidos al cerrar la [prueba de usuarios](docs/prueba-usuarios.md#6-cierre-de-la-prueba) ya están en la app:
 
 - **Turno:** aviso «Paso 1 · Inicia tu turno» con el calendario resaltado hasta marcar el inicio del ciclo 7x7; clima más discreto; «Paso 2» con «Agregar área» y «Nueva alerta» en color; botón «Registrar avance de esta área» en cada tarjeta pendiente; «Cerrar sesión» a la vista.
@@ -157,5 +166,6 @@ Equipo N.º 1, modalidad online.
 - [Manual de instalación](docs/manual-instalacion.md)
 - [Prueba de usuarios: diseño, perfiles, plan de levantamiento y sesión piloto](docs/prueba-usuarios.md)
 - [Pauta de validación](docs/pauta-validacion.md)
+- [Robustecimiento funcional: reglas, mensajes y pruebas de rotura](docs/robustecimiento.md)
 - [Evidencia de la prueba de usuarios (Drive restringido)](https://drive.google.com/drive/folders/1tUrYn61Pu5rgfOUttUz2DBbsO1Ho4Enc?usp=sharing)
 - [Espacio del proyecto en Notion](https://app.notion.com/p/Grupo-1-08f498f17d47828ca35e8193cb6cd76c)
