@@ -43,6 +43,8 @@ function Registrar() {
   const { contexto, conectado, refrescar } = useApp();
 
   const [base, setBase] = useState<Base | null>();
+  /** Por qué no se puede abrir el formulario: el área salió del turno o el registro pedido no existe. */
+  const [falta, setFalta] = useState<"area" | "registro">("area");
   const [fotos, setFotos] = useState<FotoCapturada[]>([]);
   const [ubic, setUbic] = useState<Ubicacion | null | "buscando">("buscando");
   const [empresaId, setEmpresaId] = useState<string>();
@@ -58,7 +60,7 @@ function Registrar() {
     let vivo = true;
     (async () => {
       const at = await db.areasTurno.get(atId);
-      if (!at) { if (vivo) setBase(null); return; }
+      if (!at) { if (vivo) { setFalta("area"); setBase(null); } return; }
       const [area, empresas, reporte, editando] = await Promise.all([
         db.areas.get(at.areaId), empresasDelContrato(contexto.contrato.id), db.reportes.get(at.reporteId),
         regId ? db.registros.get(regId) : Promise.resolve(undefined),
@@ -66,7 +68,9 @@ function Registrar() {
       const fotosEditando = editando
         ? (await fotosDeRegistro(editando.id)).map((f) => ({ imagen: f.imagen, capturadaEn: f.capturadaEn, latitud: f.latitud, longitud: f.longitud }))
         : [];
-      if (!vivo || !area || !reporte) { if (vivo) setBase(null); return; }
+      if (!vivo || !area || !reporte) { if (vivo) { setFalta("area"); setBase(null); } return; }
+      // Un enlace a un registro que no existe (o que ya se quitó) no abre un formulario vacío: avisa.
+      if (regId && (!editando || editando.areaTurnoId !== at.id)) { setFalta("registro"); setBase(null); return; }
       setBase({ at, area, empresas, editable: await esEditable(reporte), editando, fotosEditando });
       setEmpresaId(at.empresaId);
       if (editando) {
@@ -99,7 +103,9 @@ function Registrar() {
     return (
       <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>}>
         <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Registrar avance" />
-        <Aviso tono="rojo" icono={<IcoAlerta />} titulo="El área ya no está en el turno." />
+        {falta === "registro"
+          ? <Aviso tono="rojo" icono={<IcoAlerta />} titulo="Este registro no existe o fue quitado.">Vuelve al turno para ver los registros de hoy.</Aviso>
+          : <Aviso tono="rojo" icono={<IcoAlerta />} titulo="El área ya no está en el turno." />}
       </Pantalla>
     );
   }
