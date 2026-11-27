@@ -27,7 +27,8 @@ export default function SelectorFotos({ fotos, onChange, error, deshabilitado, e
       const f = await tomarFoto();
       if (f) onChange([...fotos, f]);
     } catch (e) {
-      setFalla(`No se pudo abrir la cámara: ${e instanceof Error ? e.message : String(e)}`);
+      console.warn("Cámara:", e);
+      setFalla("No se pudo abrir la cámara. Revisa el permiso de cámara e intenta de nuevo.");
     } finally {
       setAbriendo(false);
     }

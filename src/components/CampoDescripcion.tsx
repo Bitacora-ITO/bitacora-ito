@@ -59,7 +59,9 @@ export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen
         onChange(base + texto);
       }
     } catch (e) {
-      setAviso(`No se pudo dictar: ${e instanceof Error ? e.message : String(e)}`);
+      console.warn("Dictado:", e);
+      setAviso("No se pudo usar el dictado. Escribe la descripción.");
+      onOrigen("escrito");
     } finally {
       setEscuchando(false);
     }
