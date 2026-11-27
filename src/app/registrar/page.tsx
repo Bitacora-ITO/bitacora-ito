@@ -2,15 +2,16 @@
 // P2 · Registrar avance (HU-02 y HU-04): foto, GPS, empresa, descripción dictada o escrita, sin actividad.
 // Prueba de usuarios (hallazgo 3): el interruptor pregunta «¿Hoy NO hubo trabajos en esta área?», explica cuándo
 // usarlo y se apaga solo al escribir una descripción; si ya hay texto escrito, pide confirmar antes de activarlo.
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/db";
 import {
-  eliminarRegistro, empresasDelContrato, esEditable, fotosDeRegistro, guardarRegistro,
+  empresasDelContrato, esEditable, fotosDeRegistro, guardarRegistro, quitarRegistro, restaurarRegistro,
 } from "@/lib/repositorio";
 import { obtenerUbicacion, type FotoCapturada, type Ubicacion } from "@/lib/nativo";
 import type { Area, AreaTurno, Empresa, Registro } from "@/lib/types";
 import { hora } from "@/lib/fechas";
+import { DESCRIPCION_MAX, FOTOS_MAX_REGISTRO, MENSAJES, errorDescripcion } from "@/lib/reglas";
 import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import CampoDescripcion, { type Origen } from "@/components/CampoDescripcion";
@@ -42,6 +43,8 @@ function Registrar() {
   const { contexto, conectado, refrescar } = useApp();
 
   const [base, setBase] = useState<Base | null>();
+  /** Por qué no se puede abrir el formulario: el área salió del turno o el registro pedido no existe. */
+  const [falta, setFalta] = useState<"area" | "registro">("area");
   const [fotos, setFotos] = useState<FotoCapturada[]>([]);
   const [ubic, setUbic] = useState<Ubicacion | null | "buscando">("buscando");
   const [empresaId, setEmpresaId] = useState<string>();
@@ -51,13 +54,17 @@ function Registrar() {
   const [confirmarSin, setConfirmarSin] = useState(false);
   const [intento, setIntento] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  /** Evita guardar dos veces con un doble toque: el botón se desactiva recién al volver a dibujar la pantalla. */
+  const enCurso = useRef(false);
   const [error, setError] = useState<string>();
+  /** Último registro quitado en esta pantalla, para ofrecer «Restaurar» de inmediato. */
+  const [recienQuitado, setRecienQuitado] = useState<string>();
 
   useEffect(() => {
     let vivo = true;
     (async () => {
       const at = await db.areasTurno.get(atId);
-      if (!at) { if (vivo) setBase(null); return; }
+      if (!at) { if (vivo) { setFalta("area"); setBase(null); } return; }
       const [area, empresas, reporte, editando] = await Promise.all([
         db.areas.get(at.areaId), empresasDelContrato(contexto.contrato.id), db.reportes.get(at.reporteId),
         regId ? db.registros.get(regId) : Promise.resolve(undefined),
@@ -65,7 +72,9 @@ function Registrar() {
       const fotosEditando = editando
         ? (await fotosDeRegistro(editando.id)).map((f) => ({ imagen: f.imagen, capturadaEn: f.capturadaEn, latitud: f.latitud, longitud: f.longitud }))
         : [];
-      if (!vivo || !area || !reporte) { if (vivo) setBase(null); return; }
+      if (!vivo || !area || !reporte) { if (vivo) { setFalta("area"); setBase(null); } return; }
+      // Un enlace a un registro que no existe (o que ya se quitó) no abre un formulario vacío: avisa.
+      if (regId && (!editando || editando.areaTurnoId !== at.id)) { setFalta("registro"); setBase(null); return; }
       setBase({ at, area, empresas, editable: await esEditable(reporte), editando, fotosEditando });
       setEmpresaId(at.empresaId);
       if (editando) {
@@ -92,25 +101,42 @@ function Registrar() {
   const { datos: registros = [] } = useConsulta(
     () => db.registros.where("areaTurnoId").equals(atId).sortBy("registradoEn"), [atId],
   );
+  const { datos: quitados = [] } = useConsulta(
+    () => db.registrosQuitados.where("areaTurnoId").equals(atId).sortBy("quitadoEn"), [atId],
+  );
 
   if (base === undefined) return error ? <Pantalla><MensajeError>{error}</MensajeError></Pantalla> : <Cargando />;
   if (base === null) {
     return (
       <Pantalla pie={<button className={s.botonPrimario} onClick={() => router.push("/")}>Volver al turno</button>}>
         <Encabezado volver={{ texto: "Turno", href: "/" }} titulo="Registrar avance" />
-        <Aviso tono="rojo" icono={<IcoAlerta />} titulo="El área ya no está en el turno." />
+        {falta === "registro"
+          ? <Aviso tono="rojo" icono={<IcoAlerta />} titulo="Este registro no existe o fue quitado.">Vuelve al turno para ver los registros de hoy.</Aviso>
+          : <Aviso tono="rojo" icono={<IcoAlerta />} titulo="El área ya no está en el turno." />}
       </Pantalla>
     );
   }
 
   const otrosAvances = registros.filter((r) => !r.sinActividad && r.id !== base.editando?.id);
-  const errFoto = !sinActividad && fotos.length === 0 ? "Toma al menos 1 fotografía del avance." : undefined;
-  const errDesc = !sinActividad && !descripcion.trim() ? "Dicta o escribe qué se avanzó." : undefined;
-  const errEmp = !empresaId ? "Elige la empresa." : undefined;
+  const errFoto = sinActividad ? undefined
+    : fotos.length === 0 ? MENSAJES.fotoFalta
+      : fotos.length > FOTOS_MAX_REGISTRO ? MENSAJES.fotosMax : undefined;
+  const errDesc = errorDescripcion(descripcion, sinActividad);
+  const errEmp = !empresaId ? MENSAJES.empresaFalta : undefined;
   const faltan = [errFoto, errDesc, errEmp].filter(Boolean).length;
   const bloqueado = !base.editable || guardando;
   const lat = ubic && ubic !== "buscando" ? ubic.latitud : undefined;
   const lng = ubic && ubic !== "buscando" ? ubic.longitud : undefined;
+
+  async function quitar(id: string) {
+    setError(undefined);
+    try { await quitarRegistro(id); setRecienQuitado(id); refrescar(); } catch (e) { setError(mensaje(e)); }
+  }
+
+  async function restaurar(id: string) {
+    setError(undefined);
+    try { await restaurarRegistro(id); setRecienQuitado(undefined); refrescar(); } catch (e) { setError(mensaje(e)); }
+  }
 
   function cambiarSinActividad(v: boolean) {
     if (v && (otrosAvances.length > 0 || descripcion.trim())) { setConfirmarSin(true); return; }
@@ -127,6 +153,8 @@ function Registrar() {
     setIntento(true);
     setError(undefined);
     if (faltan > 0 || !base) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (enCurso.current) return;
+    enCurso.current = true;
     setGuardando(true);
     try {
       await guardarRegistro({
@@ -138,6 +166,7 @@ function Registrar() {
     } catch (e) {
       setError(mensaje(e));
       setGuardando(false);
+      enCurso.current = false;
     }
   }
 
@@ -159,11 +188,17 @@ function Registrar() {
         <Aviso tono="rojo" icono={<IcoAlerta />} titulo={faltan === 1 ? "Falta 1 dato para guardar" : `Faltan ${faltan} datos para guardar`} />
       )}
       {error && <Aviso tono="rojo" icono={<IcoAlerta />} titulo="No se guardó el registro">{error}</Aviso>}
+      {recienQuitado && quitados.some((q) => q.id === recienQuitado) && (
+        <Aviso tono="gris" titulo="Registro quitado.">
+          Puedes restaurarlo mientras el reporte siga editable.{" "}
+          <button className={s.enlace} onClick={() => restaurar(recienQuitado)}>Restaurar</button>
+        </Aviso>
+      )}
 
       <div className={cx(guardando && s.atenuado)} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div className={cx(sinActividad && s.atenuado)} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Etiqueta obligatorio derecha="* obligatorio">Fotografía</Etiqueta>
-          <SelectorFotos fotos={fotos} onChange={setFotos} error={intento ? errFoto : undefined} deshabilitado={bloqueado} etiquetaFoto="foto del avance" />
+          <SelectorFotos fotos={fotos} onChange={setFotos} error={intento ? errFoto : undefined} deshabilitado={bloqueado} etiquetaFoto="foto del avance" maximo={FOTOS_MAX_REGISTRO} />
 
           <Etiqueta derecha="Precargada">Ubicación</Etiqueta>
           <div className={s.campo}>
@@ -181,7 +216,7 @@ function Registrar() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8, opacity: sinActividad ? 0.55 : 1 }}>
           <Etiqueta obligatorio htmlFor="descripcion">Descripción del avance</Etiqueta>
           <CampoDescripcion id="descripcion" valor={descripcion} onChange={cambiarDescripcion} origen={origen} onOrigen={setOrigen}
-            error={intento ? errDesc : undefined} deshabilitado={bloqueado} />
+            error={intento ? errDesc : undefined} deshabilitado={bloqueado} maximo={DESCRIPCION_MAX} />
         </div>
 
         <Interruptor destacado titulo="¿Hoy NO hubo trabajos en esta área?" activo={sinActividad}
@@ -207,12 +242,32 @@ function Registrar() {
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     {!r.sinActividad && <button className={s.enlace} onClick={() => router.push(`/registrar?at=${atId}&reg=${r.id}`)}>Editar</button>}
                     <button className={s.enlace} style={{ color: "var(--rojo)" }}
-                      onClick={() => eliminarRegistro(r.id).catch((e) => setError(mensaje(e)))}>Quitar</button>
+                      onClick={() => quitar(r.id)}>Quitar</button>
                   </div>
                 )}
               </div>
             ))}
           </div>
+        </>
+      )}
+
+      {quitados.length > 0 && !base.editando && (
+        <>
+          <Etiqueta>Quitados de esta área ({quitados.length})</Etiqueta>
+          <div className={s.lista}>
+            {quitados.map((q) => (
+              <div key={q.id} className={s.tarjeta} style={{ display: "flex", gap: 8, alignItems: "flex-start", opacity: 0.75 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <b style={{ fontSize: 14 }}>Quitado a las {hora(q.quitadoEn)} · {q.registro.sinActividad ? "Sin actividad" : `${q.fotos.length} ${q.fotos.length === 1 ? "foto" : "fotos"}`}</b>
+                  {!q.registro.sinActividad && <p className={s.textoSuave} style={{ whiteSpace: "pre-line", fontSize: 14 }}>{q.registro.descripcion}</p>}
+                </div>
+                {base.editable && <button className={s.enlace} onClick={() => restaurar(q.id)}>Restaurar</button>}
+              </div>
+            ))}
+          </div>
+          <p className={s.textoSuave} style={{ fontSize: 13, margin: 0 }}>
+            Lo quitado no aparece en el reporte ni se sube a la nube. Se puede restaurar mientras el reporte siga editable.
+          </p>
         </>
       )}
 

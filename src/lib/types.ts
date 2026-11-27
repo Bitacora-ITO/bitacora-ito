@@ -93,6 +93,21 @@ export interface Registro {
   sincronizadoEn?: string;
 }
 
+/**
+ * Registro quitado por el inspector (borrado lógico). No se borra: pasa con sus fotos a esta lista aparte,
+ * marcado con la hora en que se quitó, y se puede restaurar mientras el reporte siga editable.
+ * Como sale de `registros`, no aparece en el turno, en el PDF ni en el conteo «N de M resueltos», y la
+ * sincronización lo trata como ausente (no lo sube). Se conserva solo en el teléfono.
+ */
+export interface RegistroQuitado {
+  id: string; // el mismo id del registro
+  reporteId: string;
+  areaTurnoId: string;
+  quitadoEn: string;
+  registro: Registro;
+  fotos: Fotografia[];
+}
+
 export interface Alerta {
   id: string;
   reporteId: string;

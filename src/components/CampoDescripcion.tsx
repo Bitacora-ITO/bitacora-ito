@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { detenerDictado, dictar, puedeDictar } from "@/lib/nativo";
 import { cx, MensajeError, Segmentado, estilos as s } from "./ui";
 import { IcoMicrofono } from "./iconos";
+import { largoTexto } from "@/lib/reglas";
 
 export type Origen = "dictado" | "escrito";
 
-export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen, error, deshabilitado, placeholder, mostrarSelector = true }: {
+export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen, error, deshabilitado, placeholder, mostrarSelector = true, maximo }: {
   id: string;
   valor: string;
   onChange: (v: string) => void;
@@ -17,6 +18,8 @@ export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen
   deshabilitado?: boolean;
   placeholder?: string;
   mostrarSelector?: boolean;
+  /** Largo máximo: muestra el contador «N/máximo». No corta el texto: el formulario avisa y no deja guardar. */
+  maximo?: number;
 }) {
   const [disponible, setDisponible] = useState<boolean | null>(null);
   const [escuchando, setEscuchando] = useState(false);
@@ -56,7 +59,9 @@ export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen
         onChange(base + texto);
       }
     } catch (e) {
-      setAviso(`No se pudo dictar: ${e instanceof Error ? e.message : String(e)}`);
+      console.warn("Dictado:", e);
+      setAviso("No se pudo usar el dictado. Escribe la descripción.");
+      onOrigen("escrito");
     } finally {
       setEscuchando(false);
     }
@@ -98,6 +103,12 @@ export default function CampoDescripcion({ id, valor, onChange, origen, onOrigen
           rows={3}
         />
       </div>
+      {maximo !== undefined && (
+        <p className={s.textoSuave} aria-live="polite"
+          style={{ margin: 0, textAlign: "right", fontSize: 13, color: largoTexto(valor) > maximo ? "var(--rojo)" : undefined }}>
+          {largoTexto(valor)}/{maximo}
+        </p>
+      )}
       {escuchando && (
         <button type="button" className={`${s.botonSecundario} ${s.botonChico}`} onClick={parar}>
           <IcoMicrofono /> Escuchando… toca para terminar

@@ -316,7 +316,8 @@ function Foto({ foto, numero, area }: { foto: FotoPreparada; numero: number; are
   return (
     <View style={{ width: ANCHO_FOTO }}>
       <View style={{ width: ANCHO_FOTO, height: ALTO_FOTO, borderRadius: 3, overflow: "hidden", backgroundColor: C.fondo }}>
-        <Image src={foto.src} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {/* contain: la foto se ve completa (una vertical no se corta); el fondo gris rellena el resto. */}
+        <Image src={foto.src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
       </View>
       <Text style={{ fontSize: 7.5, color: C.gris, marginTop: 3, lineHeight: 1.25 }}>
         <Text style={{ fontWeight: "bold", color: C.tinta }}>{`Foto ${numero}`}</Text>

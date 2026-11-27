@@ -60,7 +60,16 @@ function Turno() {
     return { reporte, areas, alertas, editable, envio, sinSubir, inicioTurno };
   }, [reporteHoyId, pendientes]);
 
-  if (errorCarga) return <Pantalla><MensajeError>{errorCarga.message}</MensajeError></Pantalla>;
+  if (errorCarga) {
+    // Mensaje propio en vez del texto técnico, con una salida (propuesta de reglas, parte 3).
+    return (
+      <Pantalla pie={<button className={s.botonPrimario} onClick={() => window.location.reload()}>Reintentar</button>}>
+        <Aviso tono="rojo" icono={<IcoAlerta />} titulo="No se pudo cargar el turno">
+          Intenta de nuevo. Si el problema sigue, cierra la app y vuelve a abrirla.
+        </Aviso>
+      </Pantalla>
+    );
+  }
   if (!datos) return <Cargando texto="Cargando el turno…" />;
   const { reporte, areas, alertas, editable, envio, sinSubir, inicioTurno } = datos;
   const falteIniciar = editable && !!inicioTurno && !inicioTurno.confirmado;

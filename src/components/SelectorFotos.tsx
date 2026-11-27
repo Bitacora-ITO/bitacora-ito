@@ -5,24 +5,30 @@ import { tomarFoto, type FotoCapturada } from "@/lib/nativo";
 import { cx, Giro, MensajeError, Miniatura, estilos as s } from "./ui";
 import { IcoCamara } from "./iconos";
 
-export default function SelectorFotos({ fotos, onChange, error, deshabilitado, etiquetaFoto = "foto" }: {
+export default function SelectorFotos({ fotos, onChange, error, deshabilitado, etiquetaFoto = "foto", maximo }: {
   fotos: FotoCapturada[];
   onChange: (f: FotoCapturada[]) => void;
   error?: string;
   deshabilitado?: boolean;
   etiquetaFoto?: string;
+  /** Tope de fotos (solo el registro de avance lo usa). Al llegar, «Otra foto» se desactiva antes de abrir la cámara. */
+  maximo?: number;
 }) {
   const [abriendo, setAbriendo] = useState(false);
   const [falla, setFalla] = useState<string>();
 
+  const lleno = maximo !== undefined && fotos.length >= maximo;
+
   async function tomar() {
+    if (lleno) return;
     setFalla(undefined);
     setAbriendo(true);
     try {
       const f = await tomarFoto();
       if (f) onChange([...fotos, f]);
     } catch (e) {
-      setFalla(`No se pudo abrir la cámara: ${e instanceof Error ? e.message : String(e)}`);
+      console.warn("Cámara:", e);
+      setFalla("No se pudo abrir la cámara. Revisa el permiso de cámara e intenta de nuevo.");
     } finally {
       setAbriendo(false);
     }
@@ -41,11 +47,16 @@ export default function SelectorFotos({ fotos, onChange, error, deshabilitado, e
             <Miniatura key={i} blob={f.imagen} alt={`${etiquetaFoto} ${i + 1}`}
               onQuitar={deshabilitado ? undefined : () => onChange(fotos.filter((_, k) => k !== i))} />
           ))}
-          <button type="button" className={cx(s.tomarFoto, s.tomarFotoChico)} onClick={tomar} disabled={deshabilitado || abriendo}>
+          <button type="button" className={cx(s.tomarFoto, s.tomarFotoChico)} onClick={tomar} disabled={deshabilitado || abriendo || lleno}>
             {abriendo ? <Giro chico /> : <IcoCamara />}
-            Otra foto
+            {lleno ? `${fotos.length} de ${maximo} fotos` : "Otra foto"}
           </button>
         </div>
+      )}
+      {maximo !== undefined && fotos.length > 0 && (
+        <p className={s.textoSuave} style={{ margin: 0, fontSize: 13 }}>
+          {lleno ? `Llegaste al máximo de ${maximo} fotos. Quita una para tomar otra.` : `${fotos.length} de ${maximo} fotos`}
+        </p>
       )}
       {error && <MensajeError>{error}</MensajeError>}
       {falla && <MensajeError>{falla}</MensajeError>}

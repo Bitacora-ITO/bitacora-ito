@@ -1,6 +1,6 @@
 "use client";
 // P3 · Nueva alerta (HU-03). Regla 4: criticidad alta exige al menos una fotografía (03b).
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -35,6 +35,8 @@ export default function NuevaAlerta() {
   const [eligeArea, setEligeArea] = useState(false);
   const [intento, setIntento] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  /** Evita guardar dos veces con un doble toque: el botón se desactiva recién al volver a dibujar la pantalla. */
+  const enCurso = useRef(false);
   const [error, setError] = useState<string>();
 
   const { datos } = useConsulta(async () => {
@@ -56,12 +58,14 @@ export default function NuevaAlerta() {
   async function guardar() {
     setIntento(true); setError(undefined);
     if (faltan > 0) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (enCurso.current) return;
+    enCurso.current = true;
     setGuardando(true);
     try {
       await guardarAlerta({ reporteId: reporteHoyId, columna, criticidad: criticidad!, empresaId, areaTurnoId, descripcion, fotos });
       refrescar();
       router.push("/");
-    } catch (e) { setError(mensaje(e)); setGuardando(false); }
+    } catch (e) { setError(mensaje(e)); setGuardando(false); enCurso.current = false; }
   }
 
   const soloFaltaFoto = intento && faltan === 1 && !!errFoto;
