@@ -2,7 +2,7 @@
 // P2 · Registrar avance (HU-02 y HU-04): foto, GPS, empresa, descripción dictada o escrita, sin actividad.
 // Prueba de usuarios (hallazgo 3): el interruptor pregunta «¿Hoy NO hubo trabajos en esta área?», explica cuándo
 // usarlo y se apaga solo al escribir una descripción; si ya hay texto escrito, pide confirmar antes de activarlo.
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -54,6 +54,8 @@ function Registrar() {
   const [confirmarSin, setConfirmarSin] = useState(false);
   const [intento, setIntento] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  /** Evita guardar dos veces con un doble toque: el botón se desactiva recién al volver a dibujar la pantalla. */
+  const enCurso = useRef(false);
   const [error, setError] = useState<string>();
   /** Último registro quitado en esta pantalla, para ofrecer «Restaurar» de inmediato. */
   const [recienQuitado, setRecienQuitado] = useState<string>();
@@ -151,6 +153,8 @@ function Registrar() {
     setIntento(true);
     setError(undefined);
     if (faltan > 0 || !base) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (enCurso.current) return;
+    enCurso.current = true;
     setGuardando(true);
     try {
       await guardarRegistro({
@@ -162,6 +166,7 @@ function Registrar() {
     } catch (e) {
       setError(mensaje(e));
       setGuardando(false);
+      enCurso.current = false;
     }
   }
 
