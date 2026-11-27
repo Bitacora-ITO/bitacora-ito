@@ -3,7 +3,7 @@
 import Dexie, { type Table } from "dexie";
 import type {
   Ajuste, Alerta, Area, AreaTurno, Consolidado, Contrato, Empresa, Envio, Fotografia,
-  PdfReporte, Registro, Reporte, RolTurno, Usuario,
+  PdfReporte, Registro, RegistroQuitado, Reporte, RolTurno, Usuario,
 } from "./types";
 
 export class BitacoraDB extends Dexie {
@@ -21,6 +21,7 @@ export class BitacoraDB extends Dexie {
   rolesTurno!: Table<RolTurno, string>;
   ajustes!: Table<Ajuste, string>;
   consolidados!: Table<Consolidado, string>;
+  registrosQuitados!: Table<RegistroQuitado, string>;
 
   constructor() {
     super("bitacora-ito");
@@ -42,6 +43,10 @@ export class BitacoraDB extends Dexie {
     // Semana 8: consolidación del jefe de turno.
     this.version(2).stores({
       consolidados: "id, [contratoId+fecha+turno], estado",
+    });
+    // Robustecimiento: borrado lógico de registros (se pueden restaurar).
+    this.version(3).stores({
+      registrosQuitados: "id, reporteId, areaTurnoId",
     });
   }
 }

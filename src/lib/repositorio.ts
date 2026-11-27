@@ -318,13 +318,42 @@ export async function guardarRegistro(d: DatosRegistro): Promise<Registro> {
   });
 }
 
-export async function eliminarRegistro(registroId: string): Promise<void> {
+/**
+ * Borrado lógico: «Quitar» no borra el registro. Lo pasa, con sus fotos, a `registrosQuitados` con la hora
+ * en que se quitó. Desde ahí no cuenta en el turno, el PDF ni la sincronización, y se puede restaurar.
+ */
+export async function quitarRegistro(registroId: string): Promise<void> {
   const r = await db.registros.get(registroId);
   if (!r) return;
   await prepararEdicion(r.reporteId);
-  await db.transaction("rw", [db.registros, db.fotografias], async () => {
+  await db.transaction("rw", [db.registros, db.fotografias, db.registrosQuitados], async () => {
+    const fotos = await db.fotografias.where("registroId").equals(registroId).toArray();
+    await db.registrosQuitados.put({
+      id: r.id, reporteId: r.reporteId, areaTurnoId: r.areaTurnoId, quitadoEn: ahoraISO(), registro: r, fotos,
+    });
     await db.fotografias.where("registroId").equals(registroId).delete();
     await db.registros.delete(registroId);
+  });
+}
+
+/** Devuelve al turno un registro quitado, con sus fotos. Se vuelve a subir en la próxima sincronización. */
+export async function restaurarRegistro(registroId: string): Promise<void> {
+  const q = await db.registrosQuitados.get(registroId);
+  if (!q) throw new Error("Este registro ya no está en la lista de quitados.");
+  const at = await db.areasTurno.get(q.areaTurnoId);
+  if (!at) throw new Error("El área ya no está en el turno: no se puede restaurar el registro.");
+  await prepararEdicion(q.reporteId);
+  await db.transaction("rw", [db.registros, db.fotografias, db.registrosQuitados], async () => {
+    const actuales = await db.registros.where("areaTurnoId").equals(at.id).toArray();
+    if (!q.registro.sinActividad && actuales.some((x) => x.sinActividad)) {
+      throw new Error("El área está declarada sin actividad. Quita esa declaración antes de restaurar el avance.");
+    }
+    if (q.registro.sinActividad && actuales.length > 0) {
+      throw new Error("El área ya tiene registros: no se puede restaurar la declaración «sin actividad».");
+    }
+    await db.registros.put({ ...q.registro, sincronizadoEn: undefined });
+    if (q.fotos.length) await db.fotografias.bulkPut(q.fotos.map((f) => ({ ...f, sincronizadoEn: undefined })));
+    await db.registrosQuitados.delete(registroId);
   });
 }
 
