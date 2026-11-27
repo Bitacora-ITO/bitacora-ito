@@ -6,7 +6,7 @@ import type {
 } from "./types";
 import type { FotoCapturada } from "./nativo";
 import { inicioTurnoVigente } from "./rol";
-import { MENSAJES, errorDescripcion } from "./reglas";
+import { FOTOS_MAX_REGISTRO, MENSAJES, errorDescripcion } from "./reglas";
 
 // ───────────────────────── Contexto de la sesión ─────────────────────────
 
@@ -280,6 +280,7 @@ export async function guardarRegistro(d: DatosRegistro): Promise<Registro> {
   await prepararEdicion(at.reporteId);
   // Mismas reglas que el formulario (lib/reglas.ts): si la pantalla se salta una, aquí se vuelve a revisar.
   if (!d.sinActividad && d.fotos.length === 0) throw new Error(MENSAJES.fotoFalta);
+  if (!d.sinActividad && d.fotos.length > FOTOS_MAX_REGISTRO) throw new Error(MENSAJES.fotosMax);
   const errDesc = errorDescripcion(d.descripcion, d.sinActividad);
   if (errDesc) throw new Error(errDesc);
 
