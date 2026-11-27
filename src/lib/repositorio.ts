@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import type { FotoCapturada } from "./nativo";
 import { inicioTurnoVigente } from "./rol";
+import { MENSAJES, errorDescripcion } from "./reglas";
 
 // ───────────────────────── Contexto de la sesión ─────────────────────────
 
@@ -277,8 +278,10 @@ export async function guardarRegistro(d: DatosRegistro): Promise<Registro> {
   const at = await db.areasTurno.get(d.areaTurnoId);
   if (!at) throw new Error("El área ya no está en el turno.");
   await prepararEdicion(at.reporteId);
-  if (!d.sinActividad && d.fotos.length === 0) throw new Error("Toma al menos 1 fotografía del avance.");
-  if (!d.sinActividad && !d.descripcion.trim()) throw new Error("Dicta o escribe qué se avanzó.");
+  // Mismas reglas que el formulario (lib/reglas.ts): si la pantalla se salta una, aquí se vuelve a revisar.
+  if (!d.sinActividad && d.fotos.length === 0) throw new Error(MENSAJES.fotoFalta);
+  const errDesc = errorDescripcion(d.descripcion, d.sinActividad);
+  if (errDesc) throw new Error(errDesc);
 
   return db.transaction("rw", [db.areasTurno, db.registros, db.fotografias], async () => {
     if (at.empresaId !== d.empresaId) await db.areasTurno.update(at.id, { empresaId: d.empresaId });
