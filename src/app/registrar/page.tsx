@@ -11,7 +11,7 @@ import {
 import { obtenerUbicacion, type FotoCapturada, type Ubicacion } from "@/lib/nativo";
 import type { Area, AreaTurno, Empresa, Registro } from "@/lib/types";
 import { hora } from "@/lib/fechas";
-import { DESCRIPCION_MAX, MENSAJES, errorDescripcion } from "@/lib/reglas";
+import { DESCRIPCION_MAX, FOTOS_MAX_REGISTRO, MENSAJES, errorDescripcion } from "@/lib/reglas";
 import { useConsulta } from "@/hooks/useConsulta";
 import { mensaje, useApp } from "@/components/Proveedor";
 import CampoDescripcion, { type Origen } from "@/components/CampoDescripcion";
@@ -105,7 +105,9 @@ function Registrar() {
   }
 
   const otrosAvances = registros.filter((r) => !r.sinActividad && r.id !== base.editando?.id);
-  const errFoto = !sinActividad && fotos.length === 0 ? MENSAJES.fotoFalta : undefined;
+  const errFoto = sinActividad ? undefined
+    : fotos.length === 0 ? MENSAJES.fotoFalta
+      : fotos.length > FOTOS_MAX_REGISTRO ? MENSAJES.fotosMax : undefined;
   const errDesc = errorDescripcion(descripcion, sinActividad);
   const errEmp = !empresaId ? MENSAJES.empresaFalta : undefined;
   const faltan = [errFoto, errDesc, errEmp].filter(Boolean).length;
@@ -164,7 +166,7 @@ function Registrar() {
       <div className={cx(guardando && s.atenuado)} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div className={cx(sinActividad && s.atenuado)} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Etiqueta obligatorio derecha="* obligatorio">Fotografía</Etiqueta>
-          <SelectorFotos fotos={fotos} onChange={setFotos} error={intento ? errFoto : undefined} deshabilitado={bloqueado} etiquetaFoto="foto del avance" />
+          <SelectorFotos fotos={fotos} onChange={setFotos} error={intento ? errFoto : undefined} deshabilitado={bloqueado} etiquetaFoto="foto del avance" maximo={FOTOS_MAX_REGISTRO} />
 
           <Etiqueta derecha="Precargada">Ubicación</Etiqueta>
           <div className={s.campo}>
