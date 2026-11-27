@@ -204,6 +204,7 @@ Los estados también están en las otras pantallas donde importan: P1 vacío (01
 
 - En 04b, «Aprobar reporte» pasa a **«Ver vista previa del PDF»**.
 - La pantalla nueva **P4.5 (07a y 07b)** muestra el PDF página por página en el formato del mandante: encabezado JEJ, correlativo, clima, tabla de alertas en 4 columnas, cuerpo por áreas con sus empresas y fotos a la derecha.
+- *Actualización (30-10-2026):* la app dejó de usar la réplica del formato del mandante y genera el PDF con el **diseño propio de Bitácora ITO** (logo de la app, ficha del turno, resumen en cifras, alertas ordenadas por criticidad y fotos en grilla). La réplica queda en el código solo para compararla con el informe original. Los marcos 07a y 07b de Figma conservan el formato de la versión 2.
 - Desde la vista previa hay dos salidas: **«Volver a editar»** (vuelve a P4) o **«Aprobar y enviar»** (va a P5). La aprobación queda después de haber visto el documento.
 - El marco que el equipo había hecho como 05e (previsualización después de enviar) se transformó en 07a. La tarjeta del PDF en 05a sigue abriendo la vista previa.
 
